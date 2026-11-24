@@ -595,9 +595,9 @@ pub(crate) fn shown_area(app: &App) -> Option<winc_render::Rect> {
     if converted || reading {
         return Some(app.layout.editor);
     }
-    // 编译出 PDF、正在第一次编译的 LaTeX 不显示阅读视图。
+    // 编译出 PDF、正在第一次编译的 LaTeX 不显示阅读视图；macOS 真窗口下 `.html` 由原生 WebView 接管。
     let compiled = app.latex_pdf().is_some() || app.latex_waiting();
-    if !doc.preview_kind().is_some_and(PreviewKind::typeset) || compiled {
+    if !doc.preview_kind().is_some_and(PreviewKind::typeset) || compiled || app.uses_webview(doc) {
         return None;
     }
     match doc.preview_mode() {

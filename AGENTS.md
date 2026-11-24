@@ -14,7 +14,7 @@
   - **全文检索与外部接力**：项目极速搜索（原生支持检索 `.docx` 与 `.pptx` 正文）、20 万文件级快搜、预览栏一键「用系统默认应用打开」（方便 PDF 批注或 Office 精排编辑）。
 - **明确的非目标（Non-goals）**：
   - 不做 Force-directed Graph View（关系图谱）。
-  - 不引入 WebView / Electron / Chromium。
+  - 不引入 Electron / Chromium（窄例外：macOS `.html` 预览/分栏视图采用按需懒加载的系统 `WKWebView`，未打开时 0 MB、切走或关闭后立即释放 `WebContent` 进程）。
   - 不构建重型 JS/WASM 插件运行时。
 
 ---
@@ -132,7 +132,7 @@ cargo xtask bench
    - `broken_intra_doc_links = "warn"` / `private_intra_doc_links = "warn"`：doc 内链接必须有效且可见。
    - Clippy 开启 `dbg_macro`、`todo`、`missing_errors_doc`、`missing_panics_doc`、`doc_markdown` 等检查，提交前必须零警告通过。
 2. **内存与架构红线**：
-   - 严禁引入 WebView / Chromium / Electron。
+   - 严禁引入 Electron / Chromium；系统 `WKWebView` 仅作为 macOS `.html` 预览/分栏的窄例外按需懒加载（未打开时 0 MB，切走或关闭即销毁）。
    - 保持空载物理内存 `<= 50 MB`、二进制体积紧凑。
    - 新增文件格式预览或索引功能优先复用 `winc-preview` 现有基础设施（如 `zip::Archive`、`ooxml`、`roxmltree`、`from_html`），避免引入重型依赖。
 3. **开源协议合规**：

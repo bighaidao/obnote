@@ -1280,3 +1280,161 @@ fn html_document_preview_renders_title_semantics_and_relative_links() {
     );
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn webview_target_lifecycle_and_mode_switching() {
+    use winc_editor::Unsupported;
+
+    let dir = sample_folder("webview-lifecycle");
+    let html_path = dir.join("index.html");
+    let txt_path = dir.join("notes.txt");
+    std::fs::write(&html_path, "<h1>Hello</h1>").unwrap();
+    std::fs::write(&txt_path, "plain text").unwrap();
+
+    let mut app = app_with(&html_path, false);
+
+    // 默认源码模式不需要 WebView。
+    assert_eq!(app.webview_target(), None);
+
+    // 切换到纯预览模式：命中 editor 区域。
+    app.set_preview_mode(PreviewMode::Preview);
+    let preview = app.webview_target().expect("预览模式应激活 WebView");
+    let ed = app.layout.editor;
+    assert_eq!(preview.rect, (ed.x, ed.y, ed.w, ed.h));
+    assert!(preview.visible);
+
+    // 切换到分栏模式：命中 split 区域。
+    app.set_preview_mode(PreviewMode::Split);
+    let split = app.webview_target().expect("分栏模式应激活 WebView");
+    let sp = app.layout.split;
+    assert_eq!(split.rect, (sp.x, sp.y, sp.w, sp.h));
+    assert!(split.visible);
+
+    // 分栏宽度为 0 时不激活。
+    app.layout.split.w = 0.0;
+    assert_eq!(app.webview_target(), None);
+    app.layout.split.w = sp.w;
+
+    // 切回源码模式立即失效。
+    app.set_preview_mode(PreviewMode::Source);
+    assert_eq!(app.webview_target(), None);
+
+    // 切回预览后打开非 HTML 标签页，立即失效。
+    app.set_preview_mode(PreviewMode::Preview);
+    assert!(app.webview_target().is_some());
+    app.open_path(&txt_path);
+    assert_eq!(app.webview_target(), None);
+
+    // 切回 HTML 标签页并标记为不支持占位页时也应失效。
+    app.open_path(&html_path);
+    assert!(app.webview_target().is_some());
+    if let Some(doc) = app.editor.active_mut() {
+        doc.unsupported = Some(Unsupported::TooLarge(1024));
+    }
+    assert_eq!(app.webview_target(), None);
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn webview_has_overlay_hides_without_teardown() {
+    let dir = sample_folder("webview-overlay");
+    let html_path = dir.join("page.html");
+    std::fs::write(&html_path, "<p>test</p>").unwrap();
+
+    let mut app = app_with(&html_path, false);
+    app.layout.editor = winc_render::Rect::new(0.0, 0.0, 800.0, 600.0);
+    app.set_preview_mode(PreviewMode::Preview);
+
+    assert!(!app.has_overlay());
+    assert!(app.webview_target().is_some_and(|t| t.visible));
+
+    // 1. 设置弹窗
+    app.settings.open = true;
+    assert!(app.has_overlay());
+    assert!(app.webview_target().is_some_and(|t| !t.visible));
+    app.settings.open = false;
+
+    // 2. 快速打开面板
+    app.overlays.picker.open = true;
+    assert!(app.has_overlay());
+    assert!(app.webview_target().is_some_and(|t| !t.visible));
+    app.overlays.picker.open = false;
+
+    // 3. 页内查找条
+    app.bars.find.open = true;
+    assert!(app.has_overlay());
+    app.bars.find.open = false;
+
+    // 4. 跳转/命令条
+    app.bars.goto_input = Some(Default::default());
+    assert!(app.has_overlay());
+    app.bars.goto_input = None;
+
+    // 5. 全局查找浮窗
+    app.search_dialog.open = true;
+    assert!(app.has_overlay());
+    app.search_dialog.open = false;
+
+    // 6. 窗口隐藏
+    app.window.hidden = true;
+    assert!(app.has_overlay());
+    app.window.hidden = false;
+
+    // 全部关闭后恢复可见。
+    assert!(!app.has_overlay());
+    assert!(app.webview_target().is_some_and(|t| t.visible));
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn webview_reload_key_and_load_source_follow_dirty_state() {
+    use crate::app::preview::webview::LoadSource;
+
+    let dir = std::fs::canonicalize(sample_folder("webview-reload")).unwrap();
+    let html_path = dir.join("sub/doc.html");
+    std::fs::create_dir_all(html_path.parent().unwrap()).unwrap();
+    std::fs::write(&html_path, "<p>clean</p>").unwrap();
+
+    let mut app = app_with(&html_path, false);
+    app.layout.editor = winc_render::Rect::new(0.0, 0.0, 800.0, 600.0);
+    app.set_preview_mode(PreviewMode::Preview);
+
+    let clean_target = app.webview_target().unwrap();
+    assert!(!clean_target.reload.dirty);
+
+    let doc = app.editor.active().unwrap();
+    match app.webview_load_source(doc).unwrap() {
+        LoadSource::File { path, read_access } => {
+            assert_eq!(path, html_path);
+            assert_eq!(read_access.as_deref(), html_path.parent());
+        }
+        other => panic!("expected LoadSource::File, got {other:?}"),
+    }
+
+    // 在分栏模式下编辑后变为脏文档：ReloadKey 变化，改为加载内存 HTML。
+    app.set_preview_mode(PreviewMode::Split);
+    app.run(winc_editor::Command::Insert("<span>edited</span>".into()));
+    let dirty_target = app.webview_target().unwrap();
+    assert_ne!(dirty_target.reload, clean_target.reload);
+    assert!(dirty_target.reload.dirty);
+
+    let doc = app.editor.active().unwrap();
+    match app.webview_load_source(doc).unwrap() {
+        LoadSource::Html { html, base_dir } => {
+            assert!(html.contains("<span>edited</span>"));
+            assert_eq!(base_dir.as_deref(), html_path.parent());
+        }
+        other => panic!("expected LoadSource::Html, got {other:?}"),
+    }
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn webview_blank_app_has_no_target() {
+    let app = blank_app(false);
+    assert_eq!(app.webview_target(), None);
+    assert!(app.preview.webview.is_none());
+}

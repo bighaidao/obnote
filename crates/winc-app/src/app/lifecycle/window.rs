@@ -83,6 +83,7 @@ impl App {
     /// 全屏；否则先退出全屏，完成后再隐藏（[`App::finish_hiding`]）。
     pub(super) fn hide_window(&mut self) {
         self.window.hidden = true;
+        self.sync_webview();
         #[cfg(target_os = "macos")]
         if let Some(window) = (self.window.handle.as_ref()).filter(|w| w.fullscreen().is_some())
             && (self.link.shared.others() || self.link.traffic_lights.is_some())
@@ -775,6 +776,7 @@ impl App {
         let drawn = self.draw_scrolled(&mut renderer);
         let elapsed = started.elapsed();
         self.frame.renderer = Some(renderer);
+        self.sync_webview();
         if !drawn {
             self.frame.frame_log.frame_skipped();
             self.retry_frame(started);

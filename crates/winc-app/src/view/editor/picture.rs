@@ -47,7 +47,9 @@ fn draw_split_content(app: &mut App, frame: &mut Frame<'_>) {
         return;
     }
     if kind.is_some_and(winc_editor::PreviewKind::typeset) {
-        crate::view::preview::markdown::draw(app, frame, area);
+        if !app.uses_webview(doc) {
+            crate::view::preview::markdown::draw(app, frame, area);
+        }
         return;
     }
     if kind == Some(winc_editor::PreviewKind::Table) {

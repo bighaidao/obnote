@@ -219,6 +219,8 @@ fn draw_surface(app: &mut App, frame: &mut Frame<'_>) -> Option<usize> {
         let area = app.layout.editor;
         if doc.preview_kind() == Some(winc_editor::PreviewKind::Latex) {
             super::preview::latex::draw(app, frame, area);
+        } else if app.uses_webview(doc) {
+            frame.rect(area, app.palette.editor_bg);
         } else {
             super::preview::markdown::draw(app, frame, area);
         }

@@ -14,6 +14,7 @@ pub(crate) mod latex;
 pub(crate) mod markdown;
 pub(crate) mod pdf;
 pub(crate) mod tables;
+pub(crate) mod webview;
 
 /// 能在浏览器中打开的网页文件的扩展名（小写）。
 const PAGE_EXTENSIONS: &[&str] = &["html", "htm", "xhtml"];
@@ -129,6 +130,8 @@ pub(crate) struct PreviewState {
     pub(crate) pdf: pdf::PdfPreview,
     /// LaTeX 文档的编译，各窗格共用。
     pub(crate) latex: latex::LatexBuilds,
+    /// macOS `.html` 预览的懒加载原生 WebView；非 HTML 预览或切回源码时为 `None`。
+    pub(crate) webview: Option<webview::WebViewState>,
     /// 分栏预览时源代码一侧占编辑区宽度的比例，取值 0 到 1；`None` 表示各占一半。
     ///
     /// 拖动中间的分隔线时改变，所有分栏预览的标签共用该值。

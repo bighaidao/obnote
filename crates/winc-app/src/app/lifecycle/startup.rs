@@ -119,6 +119,7 @@ impl App {
                 markdown: preview::markdown::MarkdownPreview::default(),
                 pdf: preview::pdf::PdfPreview::default(),
                 latex: preview::latex::LatexBuilds::default(),
+                webview: None,
                 split_share: None,
             },
             motion: crate::app::animation::Motions {
