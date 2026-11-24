@@ -1233,3 +1233,50 @@ fn snapshot_emoji_sequences() {
     shoot(&mut app, "emoji-sequences-preview");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn html_document_preview_renders_title_semantics_and_relative_links() {
+    use winc_preview::markdown::{Block, Style};
+
+    let dir = sample_folder("html-document-preview");
+    let path = dir.join("doc.html");
+    std::fs::write(dir.join("other.html"), "<p>Other</p>").unwrap();
+    let html = "<!doctype html><html><head><title>归档文档</title></head><body>\
+        <nav><a href=\"index.html\">导航</a></nav>\
+        <main><article>\
+            <p>访问<a href=\"other.html\">另一页</a>，重点<mark>高亮</mark>与 H<sub>2</sub>O。</p>\
+            <details open><summary>详情</summary><p>折叠正文</p></details>\
+            <figure><img src=\"img/a.png\" alt=\"图\"><figcaption>说明</figcaption></figure>\
+        </article></main>\
+        <footer>页脚</footer></body></html>";
+    std::fs::write(&path, html).unwrap();
+
+    let mut app = app_with(&path, false);
+    app.set_preview_mode(PreviewMode::Preview);
+    settle(&mut app);
+
+    let parsed = app.preview.markdown.parsed.as_ref().expect("HTML 预览未完成解析");
+    assert!(matches!(
+        &parsed.blocks[0],
+        Block::Heading(1, inline) if inline.text == "归档文档"
+    ));
+    let Block::Paragraph(p) = &parsed.blocks[1] else {
+        panic!("expected paragraph: {:?}", parsed.blocks[1]);
+    };
+    assert!(p.text.contains("另一页"));
+    assert!(!p.text.contains("导航"));
+    assert!(!p.text.contains("页脚"));
+    assert_eq!(p.links, vec!["other.html"]);
+    assert!(p.runs().any(|(_, s)| s.has(Style::MARK)));
+    assert!(p.runs().any(|(_, s)| s.has(Style::SUB)));
+    assert!(parsed.blocks.iter().any(|b| matches!(
+        b,
+        Block::Details { open: true, summary, .. } if summary.text == "详情"
+    )));
+    assert_eq!(app.check_markdown_link("other.html"), None);
+    assert_eq!(
+        app.check_markdown_link("missing.html"),
+        Some(crate::app::preview::markdown::links::Broken::File)
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}

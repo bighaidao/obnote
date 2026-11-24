@@ -683,7 +683,7 @@ impl App {
                 let converted = winc_preview::latex::to_markdown(&text);
                 (markdown::parse(&converted.markdown), Some(converted.map))
             } else if html {
-                let converted = winc_preview::markdown::from_html::from_html(&text);
+                let converted = winc_preview::markdown::from_html::from_document(&text);
                 (markdown::parse(&converted.text), None)
             } else if edited {
                 // 块之间多出的空行显示为空段落，与可编辑的预览在界面线程上的解析一致。

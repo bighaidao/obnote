@@ -14,9 +14,27 @@ pub struct Converted {
     pub rich: bool,
 }
 
-/// 把 HTML `html` 转换为 Markdown。
+/// 把 HTML `html` 转换为 Markdown（剪贴板模式）。
 pub fn from_html(html: &str) -> Converted {
-    let mut w = Writer::default();
+    convert(html, false)
+}
+
+/// 把完整的 HTML 文档 `html` 转换为适合阅读预览的 Markdown。
+///
+/// 与剪贴板模式 [`from_html`] 的区别：
+/// - 正文没有 `<h1>` 时保留 `<title>` 作为一级标题；
+/// - 过滤 `<nav>`、页脚 `<footer>` 与侧栏 `<aside>` 等页面噪音（正文内的 `<aside>` 转为引用，引用内的 `<footer>` 保留）；
+/// - 保留相对路径的图片和链接（支持 `<base href>` 解析），以及 `#锚点` 链接；
+/// - 优化 `<figure>`/`<figcaption>`、`<details>`/`<summary>`、`<dl>`/`<dt>`/`<dd>`、`<mark>`、`<sup>`/`<sub>`、`<caption>` 等语义标签的排版。
+pub fn from_document(html: &str) -> Converted {
+    convert(html, true)
+}
+
+fn convert(html: &str, document: bool) -> Converted {
+    let mut w = Writer {
+        document,
+        ..Writer::default()
+    };
     for token in Tokens(html) {
         match token {
             Token::Open(name, attrs) => w.open(&name, attrs),
@@ -114,6 +132,8 @@ enum Frame {
 enum Span {
     /// 强调：结束标签名和标记（`**`、`*`、`~~`）。
     Mark(String, &'static str),
+    /// 保留原生行内 HTML 标签（`<mark>`、`<sup>`、`<sub>`）。
+    Html(&'static str),
     Code,
     Link(String),
     /// 不改变样式的标签（如 `<b style="font-weight:normal">`），仅用于配对。
@@ -122,6 +142,7 @@ enum Span {
 
 #[derive(Default)]
 struct Writer {
+    document: bool,
     out: String,
     rich: bool,
     stack: Vec<Frame>,
@@ -140,6 +161,24 @@ struct Writer {
     table: Option<Table>,
     /// 位于内容不输出的元素中的层数。
     skip: usize,
+    /// 文档模式下位于 `<head>` 中的层数。
+    in_head: usize,
+    /// 文档模式下是否正在读取 `<title>`。
+    in_title: bool,
+    /// 文档模式下收集到的 `<title>` 原文。
+    title: String,
+    /// 文档模式下是否已出现 `<h1>`。
+    has_h1: bool,
+    /// 文档模式下 `<base href>` 指定的基准地址。
+    base_href: Option<String>,
+    /// 文档模式下位于 `<main>` 或 `<article>` 中的层数。
+    in_main_article: usize,
+    /// 文档模式下是否位于 `<summary>` 中。
+    in_summary: bool,
+    /// 文档模式下是否位于 `<dt>` 中。
+    in_dt: bool,
+    /// 文档模式下是否位于 `<figcaption>` 中（斜体块）。
+    in_figcaption: bool,
 }
 
 #[derive(Default)]
@@ -147,19 +186,62 @@ struct Table {
     rows: Vec<Vec<String>>,
     /// 当前单元格的内容在行内缓冲中的开始位置。
     cell: Option<usize>,
+    /// 当前 `<caption>` 在行内缓冲中的开始位置。
+    caption: Option<usize>,
     /// 嵌套表格的层数：嵌套的表格只保留文字。
     nested: usize,
 }
 
 impl Writer {
+    fn in_quote(&self) -> bool {
+        self.stack.contains(&Frame::Quote)
+    }
+
+    fn should_skip(&self, name: &str) -> bool {
+        if matches!(name, "script" | "style" | "template") {
+            return true;
+        }
+        if !self.document {
+            return matches!(name, "head" | "title");
+        }
+        matches!(name, "noscript" | "svg" | "nav")
+            || (name == "aside" && self.in_main_article == 0)
+            || (name == "footer" && !self.in_quote())
+    }
+
+    fn resolve_url(&self, url: &str) -> Option<String> {
+        if self.document {
+            resolve_doc_url(url, self.base_href.as_deref())
+        } else {
+            absolute(url).then(|| url.to_owned())
+        }
+    }
+
     fn open(&mut self, name: &str, attrs: &str) {
         // 只按同类的开始、结束标签计层数，其中的其他标签不计入。
-        if is_skipped(name) {
+        if self.should_skip(name) {
             self.skip += 1;
             return;
         }
         if self.skip > 0 {
             return;
+        }
+        if self.document {
+            if name == "head" {
+                self.in_head += 1;
+                return;
+            }
+            if self.in_head > 0 {
+                if name == "title" {
+                    self.in_title = true;
+                } else if name == "base" && self.base_href.is_none() {
+                    self.base_href = attr(attrs, "href");
+                }
+                return;
+            }
+            if matches!(name, "main" | "article") {
+                self.in_main_article += 1;
+            }
         }
         if let Some((text, lang)) = self.pre.as_mut() {
             match name {
@@ -172,6 +254,13 @@ impl Writer {
         if let Some(table) = self.table.as_mut() {
             match name {
                 "table" => table.nested += 1,
+                "caption" if self.document && table.nested == 0 => {
+                    let at = self.inline.len();
+                    if let Some(table) = self.table.as_mut() {
+                        table.caption = Some(at);
+                    }
+                    return;
+                }
                 "td" | "th" if table.nested == 0 => {
                     let at = self.inline.len();
                     if let Some(table) = self.table.as_mut() {
@@ -196,8 +285,33 @@ impl Writer {
                 self.flush();
                 self.heading = Some(usize::from(name.as_bytes()[1] - b'0'));
             }
+            "details" if self.document => {
+                self.flush();
+                let open = attr(attrs, "open").is_some() || has_flag(attrs, "open");
+                self.emit(if open { "<details open>" } else { "<details>" });
+                self.rich = true;
+            }
+            "summary" if self.document => {
+                self.flush();
+                self.in_summary = true;
+            }
+            "figcaption" if self.document => {
+                self.flush();
+                self.in_figcaption = true;
+            }
+            "dt" if self.document => {
+                self.flush();
+                self.in_dt = true;
+            }
             "p" | "div" | "section" | "article" | "header" | "footer" | "main" | "figure"
-            | "figcaption" | "dt" | "dd" | "address" | "center" | "nav" | "aside" => self.flush(),
+            | "figcaption" | "dl" | "dt" | "dd" | "address" | "center" | "nav" | "aside" => {
+                if self.document && matches!(name, "dd" | "aside") {
+                    self.flush();
+                    self.stack.push(Frame::Quote);
+                } else {
+                    self.flush();
+                }
+            }
             "blockquote" => {
                 self.flush();
                 self.stack.push(Frame::Quote);
@@ -248,7 +362,15 @@ impl Writer {
             "br" => self.inline.push_str("\\\n"),
             "img" => {
                 let alt = attr(attrs, "alt").unwrap_or_default();
-                match attr(attrs, "src").filter(|s| absolute(s)) {
+                let raw_src = attr(attrs, "src")
+                    .filter(|s| !s.trim().is_empty())
+                    .or_else(|| self.document.then(|| attr(attrs, "data-src")).flatten())
+                    .or_else(|| {
+                        self.document
+                            .then(|| attr(attrs, "srcset").and_then(|s| first_srcset(&s)))
+                            .flatten()
+                    });
+                match raw_src.and_then(|s| self.resolve_url(&s)) {
                     Some(src) => {
                         let alt = escape(alt.trim());
                         self.inline
@@ -257,6 +379,15 @@ impl Writer {
                     }
                     None => self.inline.push_str(&escape(&alt)),
                 }
+            }
+            "mark" | "sup" | "sub" if self.document => {
+                let tag = match name {
+                    "mark" => "mark",
+                    "sup" => "sup",
+                    _ => "sub",
+                };
+                let at = self.inline.len();
+                self.spans.push((Span::Html(tag), at));
             }
             "input" if attrs.to_ascii_lowercase().contains("checkbox") => {
                 let checked = attrs.to_ascii_lowercase().contains("checked");
@@ -304,10 +435,26 @@ impl Writer {
 
     fn close(&mut self, name: &str) {
         if self.skip > 0 {
-            if is_skipped(name) {
+            if self.should_skip(name) {
                 self.skip -= 1;
             }
             return;
+        }
+        if self.document {
+            if name == "head" {
+                self.in_head = self.in_head.saturating_sub(1);
+                self.in_title = false;
+                return;
+            }
+            if self.in_head > 0 {
+                if name == "title" {
+                    self.in_title = false;
+                }
+                return;
+            }
+            if matches!(name, "main" | "article") {
+                self.in_main_article = self.in_main_article.saturating_sub(1);
+            }
         }
         if name == "pre"
             && let Some((text, lang)) = self.pre.take()
@@ -324,6 +471,18 @@ impl Writer {
         if let Some(table) = self.table.as_mut() {
             match name {
                 "table" if table.nested > 0 => table.nested -= 1,
+                "caption" if self.document && table.nested == 0 => {
+                    self.close_spans(0);
+                    if let Some(at) = self.table.as_mut().and_then(|t| t.caption.take()) {
+                        let cap = self.inline.split_off(at.min(self.inline.len()));
+                        let cap = cap.trim();
+                        if !cap.is_empty() {
+                            self.emit(&format!("*{cap}*"));
+                            self.rich = true;
+                        }
+                    }
+                    return;
+                }
                 "td" | "th" if table.nested == 0 => {
                     self.close_spans(0);
                     let Some(table) = self.table.as_mut() else {
@@ -354,14 +513,45 @@ impl Writer {
             }
         }
         match name {
+            "details" if self.document => {
+                self.flush();
+                self.emit("</details>");
+                self.rich = true;
+            }
+            "summary" if self.document => {
+                self.flush();
+                self.in_summary = false;
+            }
+            "figcaption" if self.document => {
+                self.flush();
+                self.in_figcaption = false;
+            }
+            "dt" if self.document => {
+                self.flush();
+                self.in_dt = false;
+            }
             "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "div" | "section" | "article"
-            | "header" | "footer" | "main" | "figure" | "figcaption" | "dt" | "dd" | "address"
-            | "center" | "nav" | "aside" => self.flush(),
+            | "header" | "footer" | "main" | "figure" | "figcaption" | "dl" | "dt" | "dd"
+            | "address" | "center" | "nav" | "aside" => {
+                if self.document && matches!(name, "dd" | "aside") {
+                    self.flush();
+                    self.end_item();
+                    if let Some(i) = self.stack.iter().rposition(|f| *f == Frame::Quote) {
+                        self.stack.truncate(i);
+                        self.trim_last_prefix();
+                    }
+                    self.rich = true;
+                    self.after_item = false;
+                } else {
+                    self.flush();
+                }
+            }
             "blockquote" => {
                 self.flush();
                 self.end_item();
                 if let Some(i) = self.stack.iter().rposition(|f| *f == Frame::Quote) {
                     self.stack.truncate(i);
+                    self.trim_last_prefix();
                 }
                 self.rich = true;
                 self.after_item = false;
@@ -394,6 +584,12 @@ impl Writer {
 
     fn text(&mut self, text: &str) {
         if self.skip > 0 {
+            return;
+        }
+        if self.in_head > 0 {
+            if self.in_title {
+                self.title.push_str(text);
+            }
             return;
         }
         if let Some((pre, _)) = self.pre.as_mut() {
@@ -435,6 +631,11 @@ impl Writer {
                     let inner = inner.strip_prefix(mark).unwrap_or(&inner);
                     self.wrap(inner, mark, mark);
                 }
+                Span::Html(tag) => {
+                    let open = format!("<{tag}>");
+                    let close = format!("</{tag}>");
+                    self.wrap(&inner, &open, &close);
+                }
                 Span::Code => {
                     let ticks = "`".repeat(longest_run(&inner, '`') + 1);
                     let pad = if inner.starts_with('`') || inner.ends_with('`') {
@@ -449,8 +650,10 @@ impl Writer {
                     self.wrap(&inner, &ticks, &ticks);
                 }
                 Span::Link(href) => {
-                    let usable = absolute(&href);
-                    if usable && !inner.trim().is_empty() {
+                    let resolved = self.resolve_url(&href);
+                    if let Some(href) = resolved
+                        && !inner.trim().is_empty()
+                    {
                         let close = format!("]({})", destination(&href));
                         self.wrap(&inner, "[", &close);
                     } else {
@@ -486,14 +689,47 @@ impl Writer {
         }
         match heading {
             Some(level) => {
+                if level == 1 {
+                    self.has_h1 = true;
+                }
                 let text = text.replace("\\\n", " ");
                 self.emit(&format!("{} {text}", "#".repeat(level)));
+                self.rich = true;
+            }
+            None if self.in_summary => {
+                let text = text.replace("\\\n", " ");
+                self.emit(&format!("<summary>{text}</summary>"));
+                self.rich = true;
+            }
+            None if self.in_dt => {
+                let text = escape_start(text);
+                self.emit(&format!("**{text}**"));
+                self.rich = true;
+            }
+            None if self.in_figcaption => {
+                let text = escape_start(text);
+                self.emit(&format!("*{text}*"));
                 self.rich = true;
             }
             None => {
                 let text = text.to_owned();
                 self.emit(&escape_start(&text));
             }
+        }
+    }
+
+    /// 关闭引用块后把 `last_prefix` 缩减到当前栈对应的前缀，避免相邻两个引用块粘连。
+    fn trim_last_prefix(&mut self) {
+        let mut keep = 0;
+        for frame in &self.stack {
+            keep += match frame {
+                Frame::Quote => 2,
+                Frame::Item { indent } => *indent,
+                Frame::List { .. } => 0,
+            };
+        }
+        if self.last_prefix.len() > keep {
+            self.last_prefix.truncate(keep);
         }
     }
 
@@ -601,6 +837,18 @@ impl Writer {
         }
         self.flush();
         let mut text = self.out;
+        if self.document && !self.has_h1 {
+            let title = collapse_whitespace(&self.title);
+            if !title.is_empty() {
+                let heading = format!("# {}", escape(&title));
+                text = if text.is_empty() {
+                    heading
+                } else {
+                    format!("{heading}\n\n{text}")
+                };
+                self.rich = true;
+            }
+        }
         text.push('\n');
         Converted {
             text,
@@ -627,8 +875,11 @@ fn is_block(name: &str) -> bool {
             | "main"
             | "figure"
             | "figcaption"
+            | "dl"
             | "dt"
             | "dd"
+            | "details"
+            | "summary"
             | "address"
             | "center"
             | "nav"
@@ -642,35 +893,137 @@ fn is_block(name: &str) -> bool {
     )
 }
 
-/// 是否为内容不输出的元素。
-fn is_skipped(name: &str) -> bool {
-    matches!(name, "script" | "style" | "head" | "title" | "template")
-}
-
 /// 地址 `url` 是否为绝对地址（带协议或 `mailto:`）；相对地址不写成链接和图片。
 fn absolute(url: &str) -> bool {
     let url = url.trim().to_ascii_lowercase();
     url.contains("://") || url.starts_with("mailto:")
 }
 
+/// 文档模式下解析链接/图片地址：过滤危险或内联脚本协议，保留相对路径与 `#锚点`，并在有 `<base href>` 时补全。
+fn resolve_doc_url(url: &str, base: Option<&str>) -> Option<String> {
+    let url = url.trim();
+    if url.is_empty() {
+        return None;
+    }
+    let lower = url.to_ascii_lowercase();
+    if ["javascript:", "vbscript:", "data:", "blob:", "about:"]
+        .iter()
+        .any(|scheme| lower.starts_with(scheme))
+    {
+        return None;
+    }
+    if url.starts_with('#') || url.contains("://") || lower.starts_with("mailto:") {
+        return Some(url.to_owned());
+    }
+    if url.starts_with("//") {
+        let scheme = if base.is_some_and(|b| b.trim_start().to_ascii_lowercase().starts_with("http://")) {
+            "http:"
+        } else {
+            "https:"
+        };
+        return Some(format!("{scheme}{url}"));
+    }
+    if let Some(base) = base.map(str::trim).filter(|b| {
+        let low = b.to_ascii_lowercase();
+        low.starts_with("http://") || low.starts_with("https://")
+    }) {
+        return Some(join_http_url(base, url));
+    }
+    Some(url.to_owned())
+}
+
+fn join_http_url(base: &str, rel: &str) -> String {
+    let Some((scheme, rest)) = base.split_once("://") else {
+        return rel.to_owned();
+    };
+    let (authority, base_path) = match rest.find('/') {
+        Some(i) => (&rest[..i], &rest[i..]),
+        None => (rest, "/"),
+    };
+    let base_path = base_path.split(['?', '#']).next().unwrap_or("/");
+    if rel.starts_with('/') {
+        return format!("{scheme}://{authority}{rel}");
+    }
+    if rel.starts_with('?') {
+        return format!("{scheme}://{authority}{base_path}{rel}");
+    }
+    let dir = match base_path.rfind('/') {
+        Some(i) => &base_path[..=i],
+        None => "/",
+    };
+    let split_at = rel.find(['?', '#']).unwrap_or(rel.len());
+    let (rel_path, suffix) = rel.split_at(split_at);
+    let mut segments: Vec<&str> = Vec::new();
+    for seg in dir.split('/').chain(rel_path.split('/')) {
+        match seg {
+            "" | "." => {}
+            ".." => {
+                segments.pop();
+            }
+            s => segments.push(s),
+        }
+    }
+    let joined = segments.join("/");
+    let trailing = if rel_path.ends_with('/') && !joined.is_empty() {
+        "/"
+    } else {
+        ""
+    };
+    format!("{scheme}://{authority}/{joined}{trailing}{suffix}")
+}
+
+fn has_flag(attrs: &str, key: &str) -> bool {
+    attrs.split_whitespace().any(|w| w.eq_ignore_ascii_case(key))
+}
+
+fn first_srcset(srcset: &str) -> Option<String> {
+    srcset
+        .split(',')
+        .next()?
+        .split_whitespace()
+        .next()
+        .filter(|s| !s.is_empty())
+        .map(str::to_owned)
+}
+
+fn collapse_whitespace(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut space = true;
+    for c in text.chars() {
+        if c.is_whitespace() {
+            if !space {
+                out.push(' ');
+                space = true;
+            }
+        } else {
+            out.push(c);
+            space = false;
+        }
+    }
+    out.trim_end().to_owned()
+}
+
 fn span_name(span: &Span) -> &str {
     match span {
         Span::Mark(name, _) | Span::Plain(name) => name,
+        Span::Html(tag) => tag,
         Span::Code => "code",
         Span::Link(_) => "a",
     }
 }
 
-/// 返回 `class` 中 `language-`、`lang-` 之后的语言名。
+/// 返回 `class` 中 `language-`、`lang-` 之后的语言名，或 `data-lang`/`data-language` 属性。
 fn code_lang(attrs: &str) -> String {
     let class = attr(attrs, "class").unwrap_or_default();
-    (class.split_whitespace())
-        .find_map(|c| {
-            c.strip_prefix("language-")
-                .or_else(|| c.strip_prefix("lang-"))
-        })
+    if let Some(lang) = (class.split_whitespace()).find_map(|c| {
+        c.strip_prefix("language-")
+            .or_else(|| c.strip_prefix("lang-"))
+    }) {
+        return lang.to_owned();
+    }
+    attr(attrs, "data-lang")
+        .or_else(|| attr(attrs, "data-language"))
         .unwrap_or_default()
-        .to_owned()
 }
 
 fn longest_run(text: &str, c: char) -> usize {
