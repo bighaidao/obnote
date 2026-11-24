@@ -92,9 +92,15 @@ impl WebViewHost {
 
     /// 更新预览区逻辑坐标矩形 `(x, y, w, h)`（左上角为原点）及显隐状态。
     pub fn set_frame(&mut self, rect: (f32, f32, f32, f32), visible: bool) {
-        // SAFETY: `self.content_view` 为主线程上有效的 `NSView`，`bounds` 返回值类型的 `CGRect`。
-        let bounds: CGRect = unsafe { msg_send![&*self.content_view, bounds] };
-        let frame = appkit_frame(rect, bounds.size.height);
+        // SAFETY: `self.content_view` 为主线程上有效的 `NSView`，`bounds` 返回值类型的 `CGRect`，
+        // `isFlipped` 为只读属性返回 `Bool`。
+        let (bounds, flipped): (CGRect, Bool) = unsafe {
+            (
+                msg_send![&*self.content_view, bounds],
+                msg_send![&*self.content_view, isFlipped],
+            )
+        };
+        let frame = appkit_frame(rect, bounds.size.height, flipped.as_bool());
 
         if self.last_frame != Some(frame) {
             // SAFETY: `self.webview` 为主线程上有效的 `NSView` 子类，`setFrame:` 接收值类型 `CGRect`。
@@ -170,12 +176,20 @@ impl Drop for WebViewHost {
 }
 
 /// 将左上角原点的逻辑矩形 `(x, y, w, h)` 转换为 `AppKit` 左下角原点的 `CGRect`。
-pub(crate) fn appkit_frame(rect: (f32, f32, f32, f32), content_height: f64) -> CGRect {
+pub(crate) fn appkit_frame(
+    rect: (f32, f32, f32, f32),
+    content_height: f64,
+    flipped: bool,
+) -> CGRect {
     let (x, y, w, h) = rect;
     let width = f64::from(w.max(0.0));
     let height = f64::from(h.max(0.0));
     let x = f64::from(x);
-    let y = content_height - f64::from(y) - height;
+    let y = if flipped {
+        f64::from(y)
+    } else {
+        content_height - f64::from(y) - height
+    };
     CGRect::new(CGPoint::new(x, y), CGSize::new(width, height))
 }
 
@@ -263,7 +277,7 @@ mod tests {
 
     #[test]
     fn appkit_frame_converts_top_left_to_bottom_left() {
-        let frame = appkit_frame((120.0, 40.0, 640.0, 480.0), 900.0);
+        let frame = appkit_frame((120.0, 40.0, 640.0, 480.0), 900.0, false);
         assert_eq!(frame.origin.x, 120.0);
         assert_eq!(frame.origin.y, 380.0);
         assert_eq!(frame.size.width, 640.0);
@@ -271,8 +285,17 @@ mod tests {
     }
 
     #[test]
+    fn appkit_frame_preserves_top_left_when_flipped() {
+        let frame = appkit_frame((120.0, 46.0, 640.0, 480.0), 900.0, true);
+        assert_eq!(frame.origin.x, 120.0);
+        assert_eq!(frame.origin.y, 46.0);
+        assert_eq!(frame.size.width, 640.0);
+        assert_eq!(frame.size.height, 480.0);
+    }
+
+    #[test]
     fn appkit_frame_clamps_negative_dimensions() {
-        let frame = appkit_frame((10.0, 20.0, -50.0, -10.0), 600.0);
+        let frame = appkit_frame((10.0, 20.0, -50.0, -10.0), 600.0, false);
         assert_eq!(frame.origin.x, 10.0);
         assert_eq!(frame.origin.y, 580.0);
         assert_eq!(frame.size.width, 0.0);
@@ -281,7 +304,7 @@ mod tests {
 
     #[test]
     fn appkit_frame_full_height_panel_starts_at_zero_y() {
-        let frame = appkit_frame((0.0, 0.0, 800.0, 600.0), 600.0);
+        let frame = appkit_frame((0.0, 0.0, 800.0, 600.0), 600.0, false);
         assert_eq!(frame.origin.x, 0.0);
         assert_eq!(frame.origin.y, 0.0);
         assert_eq!(frame.size.width, 800.0);
