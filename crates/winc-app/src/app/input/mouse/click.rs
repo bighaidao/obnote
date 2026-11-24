@@ -234,6 +234,7 @@ impl App {
             Target::TabList => self.open_tab_list_menu(),
             Target::Preview(mode) => self.choose_preview_mode(mode),
             Target::Browser => self.open_in_browser(),
+            Target::ExternalApp => self.open_with_default_app(),
             Target::MarkdownLink(link) => self.open_markdown_link(link),
             Target::MarkdownToc(target) => self.press_toc(target),
             Target::MarkdownText(_) => self.click_markdown(x, y),

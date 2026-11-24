@@ -1118,3 +1118,68 @@ fn properties_escapes_are_searched_as_characters() {
     );
     let _ = fs::remove_dir_all(&dir);
 }
+
+/// 测试用：构造不压缩的 zip 包（供 docx / pptx 搜索测试使用）。
+fn stored_zip(files: &[(&str, &[u8])]) -> Vec<u8> {
+    let mut out = Vec::new();
+    let mut central = Vec::new();
+    for (name, content) in files {
+        let offset = out.len() as u32;
+        let len = content.len() as u32;
+        out.extend(0x0403_4b50u32.to_le_bytes());
+        out.extend([20, 0, 0, 0, 0, 0]);
+        out.extend([0; 8]);
+        out.extend(len.to_le_bytes());
+        out.extend(len.to_le_bytes());
+        out.extend((name.len() as u16).to_le_bytes());
+        out.extend([0, 0]);
+        out.extend(name.as_bytes());
+        out.extend(*content);
+
+        central.extend(0x0201_4b50u32.to_le_bytes());
+        central.extend([20, 0, 20, 0, 0, 0, 0, 0]);
+        central.extend([0; 8]);
+        central.extend(len.to_le_bytes());
+        central.extend(len.to_le_bytes());
+        central.extend((name.len() as u16).to_le_bytes());
+        central.extend([0; 12]);
+        central.extend(offset.to_le_bytes());
+        central.extend(name.as_bytes());
+    }
+    let start = out.len() as u32;
+    out.extend(&central);
+    out.extend(0x0605_4b50u32.to_le_bytes());
+    out.extend([0; 4]);
+    out.extend((files.len() as u16).to_le_bytes());
+    out.extend((files.len() as u16).to_le_bytes());
+    out.extend((central.len() as u32).to_le_bytes());
+    out.extend(start.to_le_bytes());
+    out.extend([0, 0]);
+    out
+}
+
+/// 全局搜索能够检索 `.docx` 和 `.pptx` 文档中的正文内容。
+#[test]
+fn searches_inside_docx_and_pptx_documents() {
+    let dir = scratch("office-search");
+    let docx_bytes = stored_zip(&[(
+        "word/document.xml",
+        br#"<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Hello obnote docx needle</w:t></w:r></w:p></w:body></w:document>"#,
+    )]);
+    let pptx_bytes = stored_zip(&[(
+        "ppt/slides/slide1.xml",
+        br#"<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:p><a:r><a:t>Slide deck needle text</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>"#,
+    )]);
+    write(&dir, "notes.docx", &docx_bytes);
+    write(&dir, "slides.pptx", &pptx_bytes);
+
+    let found = search(&dir, &query("needle"));
+    assert_eq!(files(&found), ["notes.docx", "slides.pptx"]);
+    assert_eq!(found.total(), 2);
+    assert!(found.results[0].lossy);
+    assert!(found.results[0].matches[0].preview.contains("docx needle"));
+    assert!(found.results[1].lossy);
+    assert!(found.results[1].matches[0].preview.contains("needle text"));
+
+    let _ = fs::remove_dir_all(&dir);
+}

@@ -323,10 +323,10 @@ impl App {
         }
     }
 
-    /// 返回编译产物的存放处：系统缓存目录下的 `winc`；没有状态文件时在临时目录。
+    /// 返回编译产物的存放处：系统缓存目录下的 `obnote`；没有状态文件时在临时目录。
     fn latex_cache(&self) -> PathBuf {
         if self.store.state_path.is_none() {
-            return std::env::temp_dir();
+            return std::env::temp_dir().join("obnote");
         }
         let var = |key: &str| {
             let value = std::env::var_os(key).filter(|v| !v.is_empty());
@@ -339,7 +339,10 @@ impl App {
         } else {
             var("XDG_CACHE_HOME").or_else(|| var("HOME").map(|home| home.join(".cache")))
         };
-        base.map_or_else(std::env::temp_dir, |base| base.join("winc"))
+        base.map_or_else(
+            || std::env::temp_dir().join("obnote"),
+            |base| base.join("obnote"),
+        )
     }
 
     /// 收下后台完成的编译。

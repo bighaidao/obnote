@@ -122,6 +122,9 @@ impl App {
         if self.browser_page().is_some() {
             controls.push(l.browser);
         }
+        if self.default_app_file().is_some() {
+            controls.push(l.external_app);
+        }
         controls
     }
 
@@ -243,6 +246,7 @@ impl App {
             Target::TabList => Hover::TabList,
             Target::Preview(mode) => Hover::Preview(mode),
             Target::Browser => Hover::Browser,
+            Target::ExternalApp => Hover::ExternalApp,
             Target::MarkdownLink(link) => Hover::MarkdownLink(link),
             Target::Suggest(row) => Hover::Suggest(row),
             Target::SelectionTool(tool) => Hover::SelectionTool(tool),
@@ -427,6 +431,10 @@ impl App {
         // 切换到非网页文件后，按钮收起的动画过程中不响应点击。
         if l.browser.contains(x, y) && self.browser_page().is_some() {
             return Target::Browser;
+        }
+        // 切换到不再显示默认应用按钮的文件后，收起动画过程中不响应点击。
+        if l.external_app.contains(x, y) && self.default_app_file().is_some() {
+            return Target::ExternalApp;
         }
         if let Some((index, on_close)) = self.tab_at(x, y) {
             return Target::Tab(index, on_close);
@@ -1094,6 +1102,8 @@ pub(super) enum Target {
     Preview(winc_editor::PreviewMode),
     /// 标签栏右端「在浏览器中打开」。
     Browser,
+    /// 标签栏右端「用默认应用打开」。
+    ExternalApp,
     /// Markdown 预览中的链接，参数为其在本帧 `links` 中的下标。
     MarkdownLink(usize),
     /// 链接地址补全列表的一行，参数为行号。

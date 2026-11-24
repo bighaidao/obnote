@@ -538,6 +538,8 @@ pub enum Hover {
     Preview(winc_editor::PreviewMode),
     /// 标签栏右端「在浏览器中打开」。
     Browser,
+    /// 标签栏右端「用默认应用打开」。
+    ExternalApp,
     /// Markdown 预览里的链接（`MarkdownPreview::links` 的序号）。
     MarkdownLink(usize),
     /// 链接地址补全列表的第几行。
@@ -644,6 +646,7 @@ impl Hover {
                 | Hover::TabList
                 | Hover::Preview(_)
                 | Hover::Browser
+                | Hover::ExternalApp
                 | Hover::ViewTab(_)
                 | Hover::Outline(OutlineTarget::FoldAll)
                 | Hover::MarkdownToc(preview::markdown::TocTarget::Pin)

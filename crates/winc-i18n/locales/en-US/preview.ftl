@@ -102,6 +102,13 @@ preview-docx-chart-series = { $count } series: { $names }
 preview-docx-chart-category = Category
 preview-docx-image-unsupported = The image “{ $name }” is in { $format } format and can’t be previewed
 
+## PowerPoint presentation preview
+
+preview-pptx-invalid = Not a valid pptx file
+preview-pptx-unsupported = Encrypted and zip64 pptx files aren’t supported
+preview-pptx-too-large = The file is too large
+preview-pptx-slide = Slide { $number }
+
 ## EPUB book preview
 
 preview-epub-invalid = Not a valid EPUB file

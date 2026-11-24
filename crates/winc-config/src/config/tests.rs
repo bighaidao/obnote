@@ -715,7 +715,7 @@ fn configs_are_read_as_jsonc_and_comments_are_kept_aside_when_writing() {
 #[test]
 fn config_path_lands_in_the_platform_directory() {
     let path = config_path().expect("总能算出配置路径");
-    assert!(path.ends_with("winc/config.json"), "{}", path.display());
+    assert!(path.ends_with("obnote/config.json"), "{}", path.display());
 
     if cfg!(target_os = "macos") {
         assert!(path.to_string_lossy().contains("Application Support"));

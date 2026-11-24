@@ -14,13 +14,13 @@ mod finder;
 /// 应用的标识。
 ///
 /// 系统按这个标识区分应用（权限、默认打开方式、Launch Services）。
-const BUNDLE_ID: &str = "com.deeix.winc";
+const BUNDLE_ID: &str = "com.obnote.app";
 
 /// 应用的显示名：菜单栏、访达、程序坞、「打开方式」和更新窗口里写的名字，也是 dmg 的卷名。
 ///
-/// 应用包（`winc.app`）、可执行文件和命令行命令仍是小写的 `winc`；访达按 `CFBundleDisplayName`
+/// 应用包（`obnote.app`）、可执行文件和命令行命令仍是小写的 `obnote`；访达按 `CFBundleDisplayName`
 /// 显示应用的名字，不显示包名。
-const APP_NAME: &str = "Winc";
+const APP_NAME: &str = "obnote";
 
 /// 构建 release，组成临时签名（ad-hoc）的 `target/release/bundle/winc.app`，返回路径和版本号。
 ///
@@ -58,14 +58,14 @@ pub fn app(target: Option<&str>, prebuilt: bool) -> Result<(PathBuf, String), St
     );
     let bundle = built.join("bundle");
     let version = winc_version::VERSION;
-    let app = bundle.join("winc.app");
+    let app = bundle.join("obnote.app");
     let _ = std::fs::remove_dir_all(&bundle);
     let contents = app.join("Contents");
     std::fs::create_dir_all(contents.join("MacOS")).map_err(io)?;
     std::fs::create_dir_all(contents.join("Resources")).map_err(io)?;
     // 终端模块的辅助进程和主程序放在一起，主程序按自身旁边的位置查找辅助进程。
     let helper = contents.join("MacOS/winc-pty");
-    std::fs::copy(built.join("winc"), contents.join("MacOS/winc")).map_err(io)?;
+    std::fs::copy(built.join("obnote"), contents.join("MacOS/obnote")).map_err(io)?;
     std::fs::copy(built.join("winc-pty"), &helper).map_err(io)?;
     // 主程序不链接 Sparkle，运行时从 `Contents/Frameworks` 加载；没有更新配置时也带着。
     sparkle::embed(&contents)?;
@@ -134,7 +134,7 @@ fn mac_arch(arch: &str) -> &str {
 pub fn app_arch(app: &Path) -> Result<String, String> {
     let output = Command::new("lipo")
         .arg("-archs")
-        .arg(app.join("Contents/MacOS/winc"))
+        .arg(app.join("Contents/MacOS/obnote"))
         .output()
         .map_err(|e| format!("无法运行 lipo：{e}"))?;
     if !output.status.success() {
@@ -313,7 +313,7 @@ fn fill_volume(volume: &Path, app: &Path, background: &Path, icon: &Path) -> Res
 
     let io = |e: std::io::Error| e.to_string();
     // `ditto` 原样保留签名和扩展属性。
-    run(Command::new("ditto").arg(app).arg(volume.join("winc.app")))?;
+    run(Command::new("ditto").arg(app).arg(volume.join("obnote.app")))?;
     std::os::unix::fs::symlink("/Applications", volume.join("Applications")).map_err(io)?;
     let hidden = volume.join(".background");
     std::fs::create_dir(&hidden).map_err(io)?;
@@ -385,7 +385,7 @@ fn fill_volume(volume: &Path, app: &Path, background: &Path, icon: &Path) -> Res
         // 用图标视图打开。
         root(b"vstl", Value::Type(*b"icnv")),
         root(b"vSrn", Value::Long(1)),
-        Record::icon_at("winc.app", APP_AT),
+        Record::icon_at("obnote.app", APP_AT),
         Record::icon_at("Applications", APPLICATIONS_AT),
     ])?;
     std::fs::write(volume.join(".DS_Store"), store).map_err(io)?;
@@ -998,7 +998,7 @@ fn info_plist(version: &str, updates: &sparkle::UpdateConfig, arch: &str) -> Str
 			<string>{BUNDLE_ID}</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>winc</string>
+				<string>obnote</string>
 			</array>
 		</dict>
 	</array>
@@ -1026,7 +1026,7 @@ fn info_plist(version: &str, updates: &sparkle::UpdateConfig, arch: &str) -> Str
 	<key>CFBundleDisplayName</key>
 	<string>{APP_NAME}</string>
 	<key>CFBundleExecutable</key>
-	<string>winc</string>
+	<string>obnote</string>
 	<key>CFBundleIconFile</key>
 	<string>{ICON_NAME}</string>
 	<key>CFBundleIdentifier</key>

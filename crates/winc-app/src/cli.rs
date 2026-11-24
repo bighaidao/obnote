@@ -170,8 +170,8 @@ pub fn usage() -> String {
     t!("cmd-cli-usage").to_owned()
 }
 
-/// 打开文件或目录的链接的前缀，链接为 `winc://file/<绝对路径>[:行[:列]]`。
-pub const LINK_SCHEME: &str = "winc";
+/// 打开文件或目录的链接的前缀，链接为 `obnote://file/<绝对路径>[:行[:列]]`。
+pub const LINK_SCHEME: &str = "obnote";
 
 /// 把 `winc://file/<绝对路径>[:行[:列]]` 链接解析为要打开的 [`Target`]，行号和列号从 1 起。
 ///

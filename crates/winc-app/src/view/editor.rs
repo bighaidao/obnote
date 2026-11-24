@@ -267,6 +267,7 @@ fn draw_surface(app: &mut App, frame: &mut Frame<'_>) -> Option<usize> {
             | Unsupported::Image
             | Unsupported::Workbook
             | Unsupported::Docx
+            | Unsupported::Pptx
             | Unsupported::Epub
             | Unsupported::Pdf => &[
                 (Retry, t!("editor-retry")),

@@ -20,6 +20,10 @@ pub(super) fn search_disk(
     limit: usize,
     cancel: &AtomicBool,
 ) -> Option<(Vec<LineMatch>, bool)> {
+    if winc_preview::docx::is_docx(path) || winc_preview::pptx::is_pptx(path) {
+        return search_office(matcher, path, limit, cancel);
+    }
+
     // 经后端打开：远端主机上的文件由连接读取，小文件连同文件信息一次往返取回。
     let mut opened = winc_backend::fs::open(path, 0).ok()?;
     let size = opened.metadata.len;
@@ -129,6 +133,49 @@ pub(super) fn search_disk(
         *buffer = Vec::new();
     }
     result
+}
+
+/// 搜索 docx、pptx 文档：在大小上限内提取 Markdown 文本并逐行匹配，`cancel` 置位时停止。
+///
+/// 返回的 `lossy` 固定为 `true`，防止跨文件替换直接改写压缩包。
+fn search_office(
+    matcher: &Matcher,
+    path: &Path,
+    limit: usize,
+    cancel: &AtomicBool,
+) -> Option<(Vec<LineMatch>, bool)> {
+    if cancel.load(Relaxed) {
+        return None;
+    }
+    let metadata = winc_backend::fs::metadata(path).ok()?;
+    if metadata.len > winc_preview::pptx::MAX_FILE.min(OPEN_LIMIT) {
+        return None;
+    }
+    if cancel.load(Relaxed) {
+        return None;
+    }
+    let text = if winc_preview::docx::is_docx(path) {
+        winc_preview::docx::load(path).ok()?.markdown
+    } else {
+        winc_preview::pptx::load(path).ok()?.markdown
+    };
+    if cancel.load(Relaxed) {
+        return None;
+    }
+    let matches = if matcher.is_multiline() {
+        let (joined, starts) = joined_text(&text);
+        joined_matches(matcher, &joined, &starts, limit)
+    } else {
+        let mut matches = Vec::new();
+        let _ = for_each_line(&text, 0, true, |index, line| {
+            if cancel.load(Relaxed) {
+                return ControlFlow::Break(());
+            }
+            collect(matcher, index, line, &mut matches, limit)
+        });
+        matches
+    };
+    Some((matches, true))
 }
 
 /// 按块读取并搜索一个文件的状态。

@@ -156,6 +156,7 @@ editor-unreadable-failed = Reading failed ({ $error })
 editor-unsupported-image = Image
 editor-unsupported-workbook = Workbook
 editor-unsupported-docx = Word document
+editor-unsupported-pptx = PowerPoint presentation
 editor-unsupported-epub = EPUB book
 editor-unsupported-pdf = PDF document
 editor-unsupported-binary = Binary file or unsupported text encoding ({ $size }); can’t show a preview

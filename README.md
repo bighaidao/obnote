@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="./crates/winc-app/assets/icon.svg" alt="winc" width="128" />
+  <img src="./crates/winc-app/assets/icon.svg" alt="obnote" width="128" />
 </p>
 
-<h1 align="center">Winc</h1>
+<h1 align="center">obnote</h1>
 
 <p align="center">
-  A lighter, faster, more comfortable desktop editor.
+  Ultra-lightweight, pure-Rust local knowledge base &amp; office document manager (Obsidian-lite).
 </p>
 
 <p align="center">
@@ -13,151 +13,106 @@
 </p>
 
 <p align="center">
-  <a href="https://winc.si"><img alt="Website" src="https://img.shields.io/badge/Website-winc.si-black" /></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue" /></a>
   <img alt="Rust" src="https://img.shields.io/badge/Rust-2024-b7410e" />
   <img alt="Platforms" src="https://img.shields.io/badge/Platforms-macOS%20%7C%20Linux%20%7C%20Windows-555" />
 </p>
 
-<p align="center">
-  <a href="https://winc.si/#download"><img alt="Download Winc" src="./.github/assets/download-en.svg" /></a>
-</p>
+## Vision & Philosophy
 
-## Overview
+`obnote` is built for individuals and teams who manage **local Markdown notes alongside everyday office documents**:
 
-winc is built with Rust and its own rendering engine: it starts in 0.1 seconds and uses just 52 MB
-of memory with 100,000 lines open. Multiple cursors, find and replace, and side-by-side diffs are
-all there, and every keystroke and scroll responds instantly.
+- **Zero Electron Bloat**: Unlike Electron/WebView note apps that routinely consume hundreds of megabytes of RAM, `obnote` is written in pure Rust with a custom CPU rasterizer—starting in **~119 ms** and idling around **~50 MB RAM** (52 MB with 100,000 lines open).
+- **Focused & Practical**: No heavy force-directed graph view or sprawling plugin runtime. `obnote` focuses on three essentials: **pleasant Markdown writing, instant search across 200k+ files, and built-in preview for real-world office formats**.
+- **Clean Out of the Box**: Developer-centric modules (Git, integrated terminal, SSH remote, Vim mode) can be toggled off so the workspace stays calm and distraction-free.
 
-| Measure | Result |
-| --- | --- |
-| Cold start to first frame | 119 ms (median of 20 runs) |
-| Resident memory with 100,000 lines open | 52 MB |
-| A 1 GB file, editable and highlighted | 220 ms |
-
-Measured on macOS; results vary with hardware and system load.
-
-## Features
+## Features & Format Matrix
 
 | Area | Capabilities |
 | --- | --- |
-| Editing | Multiple cursors, find and replace, native input methods, smooth scrolling in gigabyte-sized files, and an experimental Vim mode |
-| Syntax | Highlighting for common programming, markup, data, and configuration languages, plus lightweight go-to-definition and usages without a language server |
-| Formatting | Whole-file formatting with external tools such as rustfmt, Prettier, Black, Ruff, and gofmt |
-| Preview | Markdown with math and Mermaid diagrams, images, SVG, PDF (macOS and Windows), Word documents (docx), and spreadsheets (xlsx, csv), with the source one click away |
-| Git | Side-by-side diffs with word-level highlights, staging by hunk, commit and push, a commit graph, and blame |
-| Project | A file tree, quick open, and project search that follows `.gitignore` |
-| Terminal | An integrated terminal with automatic loading of project-local Python environments |
-| Remote | Experimental SSH remote: open a folder on a Linux host and edit, search, format, use Git, and open terminals there. On Windows, open folders inside WSL distributions |
-| Interface | Sixteen built-in themes, light and dark, and a complete interface in English and Simplified Chinese |
-| Modules | Git, the terminal, and SSH remote can each be turned off. First-time setup on the start page offers the appearance, theme, language, and modules |
-| Updates | Signed in-app updates on all three platforms, with the release notes shown in the app after each update |
+| **Markdown Notes** | Live Preview (source expands at cursor), LaTeX math, 9 native Mermaid diagram types, `[[wikilinks]]`, automatic clipboard image saving (`assets/${filename}`), outline / TOC, focus mode, and typewriter mode |
+| **Office & Document Previews** | Word (`.docx`), Excel / spreadsheets (`.xlsx`, `.csv`, `.tsv`), PowerPoint (`.pptx` slide-by-slide preview in pure Rust with zero new dependencies), HTML Reader Mode (< 5 MB RAM + one-click "Open in Browser"), PDF (macOS / Windows bitmap rendering + outline + thumbnails), EPUB, SVG, and common image formats |
+| **Search & External Handoff** | Fast project-wide full-text search (natively indexing `.docx` and `.pptx` text content), instant Quick Open across 200k+ files, and a one-click **"Open with default app"** toolbar button for external PDF annotation or full Office editing |
+| **Interface** | 16 built-in light and dark themes, complete English and Simplified Chinese UI, touchscreen & trackpad pinch-to-zoom |
 
-Touchscreens support tapping buttons and placing the caret, double-tapping to select a word,
-swiping to scroll, and dragging scrollbars and panel dividers. Hold for 500 ms to open the context
-menu. Swipes stay in the region where they started and stop on release. Additional fingers cancel
-the current gesture; lift all fingers before starting another. On Windows, drag the title bar to
-move the window, double-tap it to maximize or restore, and drag the window edges to resize.
-Window dragging and edge snapping use the same native Windows behavior as mouse input.
+## Upstream Attribution
 
-Image and SVG previews zoom like the PDF preview: hold Ctrl (⌘ on macOS) and scroll, pinch, or
-press Ctrl/⌘ with `+`, `-` or `0`; the point under the pointer stays in place. Scroll or drag a
-zoomed image to pan, and double-click to fit it again. This also works in the SVG split preview.
+`obnote` is built on top of **[Winc](https://github.com/DEEIX-AI/Winc)** (Apache-2.0).
 
-## Platforms
+Winc provides the pure-Rust desktop shell and custom CPU rasterizer (writing directly to `IOSurface` on macOS) that power the ~119 ms cold start, ~50 MB memory footprint, and smooth scrolling in huge files.
 
-| Platform | Requirements | Package |
-| --- | --- | --- |
-| macOS | macOS 11 or later, Apple silicon or Intel | Disk image |
-| Linux | x86_64, X11 or Wayland | AppImage, deb, Arch repository |
-| Windows | Windows 10 1809 or later, x86_64 | NSIS, MSI, portable ZIP |
+To track upstream performance and bug fixes cleanly, `obnote` uses a **Thin Rebrand** strategy:
+- Dedicated `obnote` binary, custom note icon, isolated single-instance lock, and `obnote://` URL scheme;
+- Isolated config and state directories so `obnote` and upstream `winc` can coexist side by side;
+- Preserved internal `winc-*` crate layout for straightforward upstream merges.
 
-The portable ZIP keeps settings and state in the `data` folder beside `winc.exe`; delete that
-folder to keep them in the user profile instead.
+## Quick Start
 
-winc is developed and tested mainly on macOS. Download it from
-[winc.si](https://winc.si/#download); all versions are on
-[GitHub Releases](https://github.com/DEEIX-AI/Winc/releases).
+### Build & Run from Source
 
-## Command Line
+Requires Rust (`rust-toolchain.toml` selects `1.99.1` automatically):
 
 ```bash
-winc .                  # open the current folder
-winc file.rs:12:5       # open a file at a line and column
-winc --wait file        # wait until the tab closes, for example as the Git editor
-cargo build 2>&1 | winc -   # read standard input
+# Build and open your local vault / document folder
+cargo run --release --bin obnote -- <path-to-your-vault>
+
+# Or build first and invoke the release binary directly
+cargo build --release --bin obnote
+./target/release/obnote <path-to-your-vault>
 ```
 
-The Windows installers and the Linux deb and Arch packages add `winc` to `PATH`; the Windows portable ZIP leaves `PATH` unchanged. On macOS, choose **Winc → Install winc Command…** from the menu bar or run **Shell Command: Install winc Command** from the command palette; with the Linux AppImage, use the command palette.
+### Configuration Paths
 
-On macOS the app is started by the system, so it does not inherit the environment variables of your shell. Use `winc --new-instance` to keep them.
+`obnote` stores its configuration separately from upstream `winc`:
 
-## Building from Source
-
-winc builds with Rust 1.99.1; `rust-toolchain.toml` selects the toolchain automatically.
-
-```bash
-cargo run --release                 # build and run
-cargo run --release -- <path>       # open a file or folder
-```
-
-For versioning, signing configuration and release workflows, see [Releasing winc](release/README.md).
-
-## Development
-
-```bash
-cargo xtask test                    # test the crates changed since HEAD
-cargo xtask test --all              # test the whole workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
-cargo xtask bench                   # measure startup, memory, and scrolling against budgets
-```
-
-The interface is written in Rust. Windows come from winit, and rendering is done by winc's own
-CPU rasterizer. On macOS, frames are written directly to an IOSurface.
-
-The workspace is split into crates by responsibility:
-
-| Crate | Responsibility |
+| Platform | Config Path |
 | --- | --- |
-| `winc-core` | Text, editing, undo, and diffing, independent of the interface |
-| `winc-syntax` | Lexers for syntax highlighting |
-| `winc-editor` | Editor logic: documents, file tree, search, Git, and formatting |
-| `winc-vim` | Vim mode without the interface: key notation, the command table, parsing, and evaluation |
-| `winc-backend` | File system access for local paths and for paths on remote hosts |
-| `winc-server` | The server process that runs on a remote host and serves file operations over SSH |
-| `winc-watch` | Watches folders on the machine that holds them (WSL distributions, remote hosts) |
-| `winc-render` | Rendering: glyphs, rasterization, and presentation |
-| `winc-preview` | Previews for images, SVG, Markdown, PDF, Word documents, and spreadsheets |
-| `winc-typeset` | Layout for the Markdown preview |
-| `winc-pty` | Terminal emulation and the pseudo-terminal helper process |
-| `winc-config` | Configuration and state files |
-| `winc-i18n` | Interface strings (Fluent bundles) |
-| `winc-version` | The product version, read from the `VERSION` file |
-| `winc-app` | The application: windows, events, and views |
-| `winc` | The executable's entry point, which only calls into `winc-app` |
-| `xtask` | Development automation: tests, benchmarks, and packaging |
+| **macOS** | `~/Library/Application Support/obnote/config.json` |
+| **Linux** | `~/.config/obnote/config.json` |
+| **Windows** | `%APPDATA%\obnote\config.json` |
 
-## Contributing
+### Sample "Clean Vault Mode" Config
 
-Contributions are welcome. Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) before you open a
-pull request, and open it against the `dev` branch. All contributors sign the [Contributor License
-Agreement](.github/CLA.md) and follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md). To report a
-vulnerability, see [SECURITY.md](.github/SECURITY.md).
+Add the following to `config.json` to disable developer modules (Git, terminal, SSH remote, Vim) and enable auto-save, outline, and per-note clipboard image folders:
 
-## Contact
+```json
+{
+  "language": "en",
+  "theme": "auto",
+  "editor": {
+    "defaultLanguage": "markdown",
+    "autoSave": "onFocusChange",
+    "restoreFolder": true,
+    "wordWrap": true,
+    "outline": true,
+    "lineNumbers": false
+  },
+  "markdown": {
+    "textWidth": "standard",
+    "imageFolder": "assets/${filename}",
+    "imageName": "${date}_${filename}"
+  },
+  "git": { "enabled": false },
+  "terminal": { "enabled": false },
+  "remote": { "enabled": false },
+  "vim": { "enabled": false }
+}
+```
 
-- Website: [winc.si](https://winc.si)
-- Email: [support@deeix.com](mailto:support@deeix.com)
-- Telegram: [t.me/deeix_chat](https://t.me/deeix_chat)
-- X: [@DEEIX_AI](https://x.com/DEEIX_AI)
+## Roadmap
 
-## Links
-
-- [Rust](https://www.rust-lang.org)
-- [DEEIX AI](https://deeix.com)
-- [LINUX DO](https://linux.do)
+- **Stage 1 (Completed)**:
+  - [x] Thin Rebrand (`obnote` binary, isolated config/state paths, single-instance lock, and custom folded-note icon)
+  - [x] One-click **"Open with default app"** preview toolbar button
+  - [x] Lightweight HTML Reader Mode (< 5 MB RAM + "Open in Browser")
+  - [x] Pure-Rust PowerPoint (`.pptx`) slide-by-slide preview
+  - [x] Native `.docx` and `.pptx` text indexing in project-wide search
+- **Stage 2 (Planned)**:
+  - [ ] Backlinks panel
+  - [ ] `#tags` and YAML Frontmatter index
+  - [ ] Auto-update `[[wikilinks]]` on file rename
+  - [ ] PDF text selection and copy
 
 ## License
 
-winc is licensed under the [Apache License, Version 2.0](LICENSE). See [NOTICE](NOTICE).
+`obnote` is licensed under the [Apache License, Version 2.0](LICENSE), preserving the original [LICENSE](LICENSE) and [NOTICE](NOTICE) attribution to [DEEIX AI / Winc](https://github.com/DEEIX-AI/Winc).

@@ -27,7 +27,7 @@ export const channelBase = (version) => `https://winc.si/releases${channelOf(ver
 function releaseConfig({ version, thumbprint, key }) {
   if (thumbprint && !/^[0-9A-Fa-f]{40}$/.test(thumbprint)) throw new Error("--thumbprint must be a 40-digit SHA-1 certificate thumbprint");
   return {
-    version, channel: channelOf(version), productName: "winc", identifier: "com.deeix.winc",
+    version, channel: channelOf(version), productName: "obnote", identifier: "com.obnote.app",
     msiVersion: msiVersion(version), certificateThumbprint: thumbprint?.toUpperCase() ?? "",
     updateChannels: `${channelOf(version)}=${channelBase(version)}`, updatePublicKey: publicKey(key),
   };

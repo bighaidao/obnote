@@ -110,7 +110,9 @@ impl Document {
             }
             match kind {
                 PreviewKind::Svg => self.picture = Some(PictureState::Loading),
-                PreviewKind::Markdown | PreviewKind::Latex => self.rendered = true,
+                PreviewKind::Markdown | PreviewKind::Latex | PreviewKind::Html => {
+                    self.rendered = true
+                }
                 PreviewKind::Table => self.table = Some(TableView::loading(self.revision)),
             }
         }

@@ -105,7 +105,7 @@ pub fn run() {
             return;
         }
         Ok(args) if args.version => {
-            println!("winc {}", winc_version::VERSION);
+            println!("obnote {}", winc_version::VERSION);
             return;
         }
         Ok(args) => args,

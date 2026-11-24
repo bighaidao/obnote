@@ -648,6 +648,8 @@ impl App {
                         let contents = Some(Arc::from(b.contents));
                         (markdown::parse(&b.markdown), b.media, contents)
                     }),
+                    winc_editor::Unsupported::Pptx => winc_preview::pptx::load(&path)
+                        .map(|c| (markdown::parse(&c.markdown), c.media, None)),
                     _ => winc_preview::docx::load(&path)
                         .map(|c| (markdown::parse(&c.markdown), c.media, None)),
                 };
@@ -668,7 +670,9 @@ impl App {
             Some(winc_editor::Reading::Ready(text)) => Some(Arc::clone(text)),
             _ => None,
         };
-        let latex = doc.preview_kind() == Some(PreviewKind::Latex);
+        let kind = doc.preview_kind();
+        let latex = kind == Some(PreviewKind::Latex);
+        let html = kind == Some(PreviewKind::Html);
         let edited = reading.is_none();
         md.pending = Some(revision);
         let (sender, proxy) = (md.sender.clone(), self.link.proxy.clone());
@@ -678,6 +682,9 @@ impl App {
             let (parsed, lines) = if latex {
                 let converted = winc_preview::latex::to_markdown(&text);
                 (markdown::parse(&converted.markdown), Some(converted.map))
+            } else if html {
+                let converted = winc_preview::markdown::from_html::from_html(&text);
+                (markdown::parse(&converted.text), None)
             } else if edited {
                 // 块之间多出的空行显示为空段落，与可编辑的预览在界面线程上的解析一致。
                 (markdown::parse(&text).with_blank_lines(&text), None)
@@ -945,10 +952,11 @@ impl App {
     /// 当前标签是否为可直接编辑的 Markdown 预览（只看预览）。
     pub(crate) fn markdown_live(&self) -> bool {
         shown_area(self).is_some_and(|a| a == self.layout.editor)
-            && self
-                .editor
-                .active()
-                .is_some_and(|d| d.edits_text() && d.readonly_reason().is_none())
+            && self.editor.active().is_some_and(|d| {
+                d.preview_kind() != Some(PreviewKind::Html)
+                    && d.edits_text()
+                    && d.readonly_reason().is_none()
+            })
     }
 
     /// 重排后开始过渡动画（见 [`BlockMotion`]）。

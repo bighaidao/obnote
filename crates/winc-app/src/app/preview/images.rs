@@ -537,6 +537,7 @@ fn preview_key(kind: PreviewKind) -> &'static str {
         PreviewKind::Markdown => "markdown",
         PreviewKind::Table => "table",
         PreviewKind::Latex => "latex",
+        PreviewKind::Html => "html",
     }
 }
 

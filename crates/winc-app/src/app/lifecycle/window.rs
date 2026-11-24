@@ -382,6 +382,7 @@ impl App {
     pub(in crate::app) fn place_editor_parts(&mut self) {
         self.place_preview_button();
         self.place_browser_button();
+        self.place_external_app_button();
         self.place_split();
         self.place_merge_panes();
         self.place_minimap();
@@ -426,6 +427,29 @@ impl App {
         }
         let (tabs, w) = (l.tabs, BUTTON * share);
         l.browser = Rect::new(
+            tabs.right() - w,
+            tabs.y + (tabs.h - BUTTON) / 2.0,
+            w,
+            BUTTON,
+        );
+        l.tabs.w -= (BUTTON + TAB_GAP) * share;
+    }
+
+    /// 当前文件处于本机预览或只读视图（`App::default_app_file`）时，在标签栏右端留出
+    /// 「用默认应用打开」按钮，标签栏让出该处；出现、消失的动画同预览切换。
+    fn place_external_app_button(&mut self) {
+        let share = self
+            .motion
+            .module_fx
+            .external_app
+            .share(self.default_app_file().is_some());
+        let l = &mut self.layout;
+        l.external_app = Rect::default();
+        if share <= 0.0 || l.tabs.w < BUTTON * 4.0 {
+            return;
+        }
+        let (tabs, w) = (l.tabs, BUTTON * share);
+        l.external_app = Rect::new(
             tabs.right() - w,
             tabs.y + (tabs.h - BUTTON) / 2.0,
             w,

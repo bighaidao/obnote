@@ -5,150 +5,96 @@
   viewBox="0 0 1024 1024"
   fill="none"
 >
-  <title>winc App Logo</title>
+  <title>obnote App Logo</title>
 
   <defs>
-    <!-- 蓝色底板 -->
+    <!-- 深石板靛蓝底板 -->
     <linearGradient
       id="background"
-      x1="190" y1="52"
-      x2="805" y2="970"
+      x1="160" y1="60"
+      x2="864" y2="964"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#3296FC"/>
-      <stop offset="0.36" stop-color="#1769FC"/>
-      <stop offset="0.68" stop-color="#064AF3"/>
-      <stop offset="1" stop-color="#0035D2"/>
+      <stop offset="0" stop-color="#2C3352"/>
+      <stop offset="0.52" stop-color="#232841"/>
+      <stop offset="1" stop-color="#1E2235"/>
     </linearGradient>
 
-    <radialGradient
-      id="blueGlow"
-      cx="0" cy="0" r="1"
+    <!-- 柔和顶部高光 -->
+    <linearGradient
+      id="bgSheen"
+      x1="512" y1="52"
+      x2="512" y2="520"
       gradientUnits="userSpaceOnUse"
-      gradientTransform="translate(585 490) rotate(90) scale(540 620)"
     >
-      <stop stop-color="#034AFF" stop-opacity="0.42"/>
-      <stop offset="1" stop-color="#034AFF" stop-opacity="0"/>
-    </radialGradient>
+      <stop offset="0" stop-color="#4B5582" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#2C3352" stop-opacity="0"/>
+    </linearGradient>
 
-    <!-- 白色丝带正面 -->
+    <!-- 象牙白纸页 -->
+    <linearGradient
+      id="sheet"
+      x1="300" y1="196"
+      x2="720" y2="836"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#FFFDF8"/>
+      <stop offset="0.65" stop-color="#F7F4EC"/>
+      <stop offset="1" stop-color="#ECE8DC"/>
+    </linearGradient>
+
+    <!-- 折角阴影与折面 -->
+    <linearGradient
+      id="foldShadow"
+      x1="604" y1="348"
+      x2="764" y2="348"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#1E2235" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#1E2235" stop-opacity="0.02"/>
+    </linearGradient>
+
+    <linearGradient
+      id="foldFlap"
+      x1="612" y1="348"
+      x2="764" y2="196"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#E2DFD4"/>
+      <stop offset="1" stop-color="#CFD4E3"/>
+    </linearGradient>
+
+    <!-- 暖琥珀金书签丝带 -->
     <linearGradient
       id="ribbon"
-      x1="480" y1="397"
-      x2="480" y2="731"
+      x1="400" y1="196"
+      x2="400" y2="416"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.42" stop-color="#FAFBFE"/>
-      <stop offset="1" stop-color="#E5EDFC"/>
+      <stop offset="0" stop-color="#FBBF24"/>
+      <stop offset="0.55" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#D97706"/>
     </linearGradient>
 
-    <!-- 中间上行折面 -->
+    <!-- 四角星光点缀 -->
     <linearGradient
-      id="middleFold"
-      x1="382" y1="548"
-      x2="491" y2="583"
+      id="spark"
+      x1="630" y1="646"
+      x2="736" y2="752"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#B1CBFA"/>
-      <stop offset="0.48" stop-color="#C5D9FC"/>
-      <stop offset="1" stop-color="#DCE8FD"/>
+      <stop offset="0" stop-color="#FDE68A"/>
+      <stop offset="0.5" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#D97706"/>
     </linearGradient>
-
-    <linearGradient
-      id="middleShade"
-      x1="460" y1="427"
-      x2="407" y2="669"
-      gradientUnits="userSpaceOnUse"
-    >
-      <stop offset="0" stop-color="#91B4F8" stop-opacity="0.24"/>
-      <stop offset="0.48" stop-color="#B2CDFB" stop-opacity="0"/>
-      <stop offset="1" stop-color="#90B6F9" stop-opacity="0.25"/>
-    </linearGradient>
-
-    <!-- 右侧上行折面 -->
-    <linearGradient
-      id="rightFold"
-      x1="773" y1="437"
-      x2="686" y2="668"
-      gradientUnits="userSpaceOnUse"
-    >
-      <stop offset="0" stop-color="#F5F7FE"/>
-      <stop offset="0.42" stop-color="#E0EAFD"/>
-      <stop offset="0.76" stop-color="#C9DCFC"/>
-      <stop offset="1" stop-color="#B2CDFA"/>
-    </linearGradient>
-
-    <!-- 圆点 -->
-    <linearGradient
-      id="dot"
-      x1="758" y1="306"
-      x2="824" y2="402"
-      gradientUnits="userSpaceOnUse"
-    >
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.42" stop-color="#FAFBFF"/>
-      <stop offset="1" stop-color="#DFE8FC"/>
-    </linearGradient>
-
-    <path
-      id="wShape"
-      d="
-        M 178 448
-        C 174 425, 193 405, 219 400
-        C 253 391, 288 402, 301 429
-        C 316 464, 339 533, 357 579
-
-        L 424 447
-        C 440 413, 468 398, 504 397
-        C 547 395, 579 412, 595 445
-        C 612 481, 636 541, 655 586
-
-        L 710 467
-        C 722 440, 739 430, 759 433
-        C 790 435, 817 450, 825 474
-        C 830 487, 823 503, 817 517
-
-        L 754 658
-        C 737 700, 706 729, 664 730
-        C 618 733, 584 711, 565 671
-        C 546 628, 529 567, 513 523
-
-        L 455 654
-        C 435 703, 405 729, 364 730
-        C 318 733, 286 714, 267 679
-        C 246 640, 209 536, 182 464
-        C 179 457, 178 452, 178 448
-        Z
-      "
-    />
-
-    <path
-      id="middleFace"
-      d="
-        M 357 579
-        L 424 447
-        C 429 437, 435 430, 442 427
-        C 461 423, 479 442, 491 467
-        C 500 486, 507 506, 513 523
-        L 450 663
-        C 437 669, 422 667, 409 662
-        C 386 653, 371 618, 357 579
-        Z
-      "
-    />
-
-    <clipPath id="wClip">
-      <use href="#wShape"/>
-    </clipPath>
   </defs>
 
-  <!-- 四周透明 -->
+  <!-- 四周透明的圆角方形底板（width="920" 符合 macOS 图标模板比例） -->
   <rect
     x="52"
     y="52"
     width="920"
-    height="918"
+    height="920"
     rx="222"
     fill="url(#background)"
   />
@@ -157,39 +103,74 @@
     x="52"
     y="52"
     width="920"
-    height="918"
+    height="920"
     rx="222"
-    fill="url(#blueGlow)"
+    fill="url(#bgSheen)"
   />
 
-  <!-- 丝带轮廓与折面 -->
-  <use href="#wShape" fill="url(#ribbon)"/>
+  <!-- 象牙白折角笔记纸页 -->
+  <path
+    d="
+      M 304 196
+      L 612 196
+      L 764 348
+      L 764 780
+      C 764 807, 743 828, 716 828
+      L 304 828
+      C 277 828, 256 807, 256 780
+      L 256 244
+      C 256 217, 277 196, 304 196
+      Z
+    "
+    fill="url(#sheet)"
+  />
 
-  <g clip-path="url(#wClip)">
-    <use href="#middleFace" fill="url(#middleFold)"/>
-    <use href="#middleFace" fill="url(#middleShade)"/>
+  <!-- 折角下方柔和折痕阴影 -->
+  <path
+    d="M 612 348 L 764 348 L 764 374 L 628 374 Z"
+    fill="url(#foldShadow)"
+  />
 
-    <path
-      d="
-        M 655 586
-        L 710 467
-        C 722 440, 739 430, 759 433
-        C 790 435, 817 450, 825 474
-        C 830 487, 823 503, 817 517
-        L 754 658
-        C 751 664, 744 667, 736 668
-        C 714 672, 696 661, 682 645
-        C 671 632, 662 608, 655 586
-        Z
-      "
-      fill="url(#rightFold)"
-    />
-  </g>
+  <!-- 右上角折角三角 -->
+  <path
+    d="
+      M 612 196
+      L 764 348
+      L 652 348
+      C 630 348, 612 330, 612 308
+      Z
+    "
+    fill="url(#foldFlap)"
+  />
 
-  <circle
-    cx="790"
-    cy="350"
-    r="59"
-    fill="url(#dot)"
+  <!-- 极简笔记横线 -->
+  <rect x="332" y="468" width="320" height="32" rx="16" fill="#C7CDE0"/>
+  <rect x="332" y="544" width="356" height="32" rx="16" fill="#D5DAEA"/>
+  <rect x="332" y="620" width="228" height="32" rx="16" fill="#D5DAEA"/>
+
+  <!-- 暖琥珀金书签丝带 -->
+  <path
+    d="
+      M 348 196
+      L 452 196
+      L 452 408
+      L 400 364
+      L 348 408
+      Z
+    "
+    fill="url(#ribbon)"
+  />
+
+  <!-- 极简几何四角星光 -->
+  <path
+    d="
+      M 684 636
+      Q 684 704, 752 704
+      Q 684 704, 684 772
+      Q 684 704, 616 704
+      Q 684 704, 684 636
+      Z
+    "
+    fill="url(#spark)"
   />
 </svg>

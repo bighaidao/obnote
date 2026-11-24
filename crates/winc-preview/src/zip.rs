@@ -143,6 +143,11 @@ impl<'a> Archive<'a> {
         Some(self.extract(entry))
     }
 
+    /// 按中央目录中的顺序返回包内所有文件的路径。
+    pub(crate) fn names(&self) -> impl Iterator<Item = &str> {
+        self.entries.iter().map(|e| e.name.as_str())
+    }
+
     /// 测试用：把累计解压量的上限改为 `budget` 字节。
     #[cfg(test)]
     pub(crate) fn with_budget(mut self, budget: usize) -> Self {

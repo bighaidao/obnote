@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="./crates/winc-app/assets/icon.svg" alt="winc" width="128" />
+  <img src="./crates/winc-app/assets/icon.svg" alt="obnote" width="128" />
 </p>
 
-<h1 align="center">Winc</h1>
+<h1 align="center">obnote</h1>
 
 <p align="center">
-  更轻、更快、更顺手的桌面编辑器。
+  极速、极省内存的纯 Rust 本地知识库与办公资料管理器（Obsidian-lite）
 </p>
 
 <p align="center">
@@ -13,145 +13,106 @@
 </p>
 
 <p align="center">
-  <a href="https://winc.si"><img alt="Website" src="https://img.shields.io/badge/Website-winc.si-black" /></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue" /></a>
   <img alt="Rust" src="https://img.shields.io/badge/Rust-2024-b7410e" />
   <img alt="Platforms" src="https://img.shields.io/badge/Platforms-macOS%20%7C%20Linux%20%7C%20Windows-555" />
 </p>
 
-<p align="center">
-  <a href="https://winc.si/#download"><img alt="下载 Winc" src="./.github/assets/download-zh.svg" /></a>
-</p>
+## 定位与理念
 
-## 概述
+`obnote` 面向需要**长期管理本地 Markdown 笔记与海量办公文档**的个人与团队：
 
-winc 以 Rust 与自研渲染引擎构建：0.1 秒启动，十万行代码仅占 52 MB 内存。多光标、查找替换、并排差异，
-每一次输入与滚动都即时响应。
+- **告别 Electron 内存焦虑**：市面常见笔记软件基于 WebView / Electron 构建，常驻内存动辄数百 MB；`obnote` 全栈使用纯 Rust 与自研 CPU 光栅化引擎，无任何 WebView / Electron 依赖，冷启动仅约 **119 ms**、常驻内存约 **50 MB**（打开 10 万行文档约 52 MB）。
+- **克制、实用的资料库体验**：不做臃肿的力导向关系图谱（Graph View），也不依赖重型插件生态，聚焦「**写得顺手 + 搜得极快 + 什么办公文档都能直接看**」。
+- **纯净开箱默认**：Git、终端、SSH 远程、Vim 等研发向模块均可关闭，配置为纯净资料库模式后，打开即进入专注阅读与写作界面。
 
-| 指标 | 结果 |
+## 核心功能与格式矩阵
+
+| 类别 | 支持能力 |
 | --- | --- |
-| 冷启动到第一帧 | 119 ms（20 次的中位数） |
-| 打开 10 万行时的常驻内存 | 52 MB |
-| 1 GB 的文件，可编辑、有高亮 | 220 ms |
+| **Markdown 实时笔记** | Live Preview（光标处自动展开源码）、LaTeX 数学公式、9 类原生 Mermaid 图表、`[[双链跳转]]`、剪贴板粘贴自动存图（支持 `assets/${filename}` 等模板）、大纲 / 目录 TOC、专注模式与打字机模式 |
+| **办公与多格式预览** | Word（`.docx`）、Excel / 表格（`.xlsx` / `.csv` / `.tsv`）、PowerPoint（`.pptx` 纯 Rust 零新依赖拆页预览）、HTML 阅读模式（内存占用 < 5 MB，支持一键在浏览器中打开）、PDF（macOS / Windows 位图渲染 + 大纲 + 缩略图）、EPUB、SVG 与主流图片 |
+| **资料检索与外部接力** | 项目极速全文搜索（原生支持检索 `.docx` 与 `.pptx` 正文）、20 万级文件秒开快搜（Quick Open）、预览栏一键「**用系统默认应用打开**」（方便 PDF 批注或 Office 精排编辑） |
+| **界面与交互** | 16 套内置浅色 / 深色主题、完整简体中文与英文界面、触摸屏与触控板捏合缩放 |
 
-在 macOS 上测得，随硬件和系统负载略有不同。
+## 基于什么开发（上游致谢）
 
-## 功能
+`obnote` 基于优秀的开源项目 **[Winc](https://github.com/DEEIX-AI/Winc)**（Apache-2.0）开发。
 
-| 方面 | 能力 |
-| --- | --- |
-| 编辑 | 多光标、查找替换、系统输入法，GB 级文件中流畅滚动，以及实验性的 Vim 模式 |
-| 语法 | 常见编程语言、标记语言、数据和配置格式的高亮，不依赖语言服务器的轻量跳转定义和查找用法 |
-| 格式化 | 调用 rustfmt、Prettier、Black、Ruff、gofmt 等外部工具整理整个文件 |
-| 预览 | Markdown（含公式和 Mermaid 图）、图片、SVG、PDF（macOS 和 Windows）、Word 文档（docx）、表格（xlsx、csv），随时切回源代码 |
-| Git | 并排差异（词级高亮）、按块暂存、提交和推送、提交图、逐行追溯 |
-| 项目 | 文件树、快速打开、遵循 `.gitignore` 的项目搜索 |
-| 终端 | 内置终端，支持自动加载项目内的 Python 虚拟环境 |
-| 远程 | 实验性的 SSH 远程：打开 Linux 主机上的目录，在其中编辑、搜索、格式化、使用 Git 和终端；Windows 上可打开 WSL 发行版中的目录 |
-| 界面 | 十六套内置主题，浅色、深色均有；完整的英文和简体中文界面 |
-| 模块 | Git、终端和 SSH 远程均可单独关闭；首次运行时在开始页设置外观、主题、语言和模块 |
-| 更新 | 三个平台都有签名的应用内更新，更新后可在应用内查看更新日志 |
+Winc 提供了纯 Rust 桌面窗口与自研 CPU 光栅化渲染底座（macOS 下直接写入 IOSurface），带来了约 **119 ms** 冷启动、约 **50 MB** 内存占用与流畅的超大文件滚动体验。
 
-触摸屏支持点按按钮和定位光标、双击选词、单指滑动滚动，以及拖动滚动条和面板分隔条。
-Windows 上还可拖动标题栏移动窗口、双击标题栏最大化或还原，以及拖动窗口边缘改变大小。
-窗口拖动和边缘吸附与鼠标操作共用 Windows 原生行为。
-长按 500 毫秒打开当前位置的右键菜单。滑动始终作用于落指的区域，抬手后停止；多指接触会取消
-当前手势，所有手指离开后可继续操作。
+为了能够持续、低成本地同步上游性能优化与底层修复，`obnote` 采用 **Thin Rebrand（轻量品牌定制）** 策略：
+- 独立产品入口 `obnote`、独立应用图标、独立单实例锁与 URL Scheme（`obnote://`）；
+- 独立配置与状态目录，可与原版 Winc 在同一台机器上共存互不干扰；
+- 保留内部 `winc-*` crate 结构与模块分层，便于清晰追踪并合并上游更新。
 
-图片和 SVG 预览的缩放方式与 PDF 预览相同：按住 Ctrl（macOS 为 ⌘）滚动、触控板捏合，或按
-Ctrl/⌘ 加 `+`、`-`、`0`，缩放时鼠标所指的位置保持不动。放大后滚动或按住左键拖动查看，双击
-恢复适应窗口。SVG 分栏预览中的图片也支持这些操作。
+## 快速开始
 
-## 平台
+### 从源码构建与运行
 
-| 平台 | 要求 | 安装包 |
-| --- | --- | --- |
-| macOS | macOS 11 及以上，Apple 芯片或 Intel | 磁盘映像 |
-| Linux | x86_64，X11 或 Wayland | AppImage、deb、Arch 软件源 |
-| Windows | Windows 10 1809 及以上，x86_64 | NSIS、MSI、便携 ZIP |
-
-便携 ZIP 将设置和状态保存在 `winc.exe` 旁边的 `data` 目录中；删除该目录后改为保存在用户目录中。
-
-主要在 macOS 上开发和测试。可从 [winc.si](https://winc.si/#download) 下载，所有版本见
-[GitHub Releases](https://github.com/DEEIX-AI/Winc/releases)。
-
-## 命令行
+需要 Rust 工具链（仓库根目录 `rust-toolchain.toml` 会自动选择 `1.99.1`）：
 
 ```bash
-winc .                  # 打开当前目录
-winc file.rs:12:5       # 打开文件并跳到指定的行和列
-winc --wait file        # 等标签关闭后再退出，例如作为 Git 的编辑器
-cargo build 2>&1 | winc -   # 读取标准输入
+# 构建并直接打开你的本地知识库 / 资料目录
+cargo run --release --bin obnote -- <你的资料库路径>
+
+# 或者先编译再运行二进制
+cargo build --release --bin obnote
+./target/release/obnote <你的资料库路径>
 ```
 
-Windows 安装包、Linux deb 包和 Arch 包会把 `winc` 加入 `PATH`；Windows 便携版不修改 `PATH`。macOS 请在菜单栏选择「Winc → 安装 winc 命令…」，或在命令面板中运行「Shell 命令：安装 winc 命令」；Linux AppImage 请使用命令面板。
+### 配置文件路径
 
-在 macOS 上应用由系统启动，不继承 shell 的环境变量；需要保留时使用 `winc --new-instance`。
+`obnote` 的配置文件与原版 Winc 完全隔离，各平台默认路径如下：
 
-## 从源代码构建
-
-需要 Rust 1.99.1，`rust-toolchain.toml` 会自动选用工具链。
-
-```bash
-cargo run --release                 # 构建并运行
-cargo run --release -- <路径>        # 打开文件或目录
-```
-
-版本同步、签名配置和发布流程见[发布说明](release/README.md)。
-
-## 开发
-
-```bash
-cargo xtask test                    # 只测和 HEAD 相比改动涉及的 crate
-cargo xtask test --all              # 测整个 workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
-cargo xtask bench                   # 测启动、内存、滚动，对照性能预算
-```
-
-界面由 Rust 编写，窗口用 winit，渲染由 winc 自己的 CPU 光栅化完成；在 macOS 上直接写入 IOSurface。
-
-代码按 crate 分层：
-
-| crate | 职责 |
+| 平台 | 配置文件路径 |
 | --- | --- |
-| `winc-core` | 文本、编辑、撤销、差异等与界面无关的基础 |
-| `winc-syntax` | 语法高亮的词法分析 |
-| `winc-editor` | 文档、文件树、查找、Git、格式化等编辑器逻辑 |
-| `winc-vim` | Vim 模式的无界面部分：按键记法、命令表、命令的解析与求值 |
-| `winc-backend` | 文件系统的访问入口，区分本机路径与远端主机上的路径 |
-| `winc-server` | 运行在远端主机上的服务进程，经 SSH 为本机执行文件操作 |
-| `winc-watch` | 在文件所在的机器上监视目录（WSL 发行版内、远端主机上） |
-| `winc-render` | 渲染层：字形、光栅化、呈现 |
-| `winc-preview` | 图片、SVG、Markdown、PDF、Word 文档、表格预览 |
-| `winc-typeset` | Markdown 预览的排版 |
-| `winc-pty` | 终端仿真和伪终端的辅助进程 |
-| `winc-config` | 配置和状态文件 |
-| `winc-i18n` | 界面文案（Fluent 语言包） |
-| `winc-version` | 产品版本号，取自 `VERSION` 文件 |
-| `winc-app` | 应用本体：窗口、事件、各个界面 |
-| `winc` | 可执行文件的入口，只调用 `winc-app` |
-| `xtask` | 开发自动化：测试、基准、打包 |
+| **macOS** | `~/Library/Application Support/obnote/config.json` |
+| **Linux** | `~/.config/obnote/config.json` |
+| **Windows** | `%APPDATA%\obnote\config.json` |
 
-## 参与贡献
+### 纯净资料库模式示例配置
 
-欢迎贡献。提交合并请求前请阅读 [CONTRIBUTING.md](.github/CONTRIBUTING.md)，合并请求请提到
-`dev` 分支。所有贡献者都要签署[贡献者许可协议](.github/CLA.md)，并遵守
-[行为准则](.github/CODE_OF_CONDUCT.md)。报告安全漏洞见 [SECURITY.md](.github/SECURITY.md)。
+将以下片段写入上述 `config.json`，即可关闭 Git、终端、SSH 远程与 Vim 模式，启用中文界面、自动保存、大纲与按笔记名归档粘贴图片：
 
-## 联系我们
+```json
+{
+  "language": "zh-CN",
+  "theme": "auto",
+  "editor": {
+    "defaultLanguage": "markdown",
+    "autoSave": "onFocusChange",
+    "restoreFolder": true,
+    "wordWrap": true,
+    "outline": true,
+    "lineNumbers": false
+  },
+  "markdown": {
+    "textWidth": "standard",
+    "imageFolder": "assets/${filename}",
+    "imageName": "${date}_${filename}"
+  },
+  "git": { "enabled": false },
+  "terminal": { "enabled": false },
+  "remote": { "enabled": false },
+  "vim": { "enabled": false }
+}
+```
 
-- 网站：[winc.si](https://winc.si)
-- 邮箱：[support@deeix.com](mailto:support@deeix.com)
-- Telegram：[t.me/deeix_chat](https://t.me/deeix_chat)
-- X：[@DEEIX_AI](https://x.com/DEEIX_AI)
+## 路线图（Roadmap）
 
-## 友情链接
-
-- [Rust](https://www.rust-lang.org)
-- [DEEIX AI](https://deeix.com)
-- [LINUX DO](https://linux.do)
+- **Stage 1（已完成）**：
+  - [x] Thin Rebrand（独立 `obnote` 二进制、配置目录、单实例锁与全新折页书签图标）
+  - [x] 预览栏一键「用系统默认应用打开」外部接力按钮
+  - [x] HTML 轻量阅读模式（< 5 MB 内存占用 + 保留一键浏览器打开）
+  - [x] PowerPoint（`.pptx`）纯 Rust 拆页预览
+  - [x] 项目全文检索原生支持 `.docx` 与 `.pptx` 正文内容
+- **Stage 2（规划中）**：
+  - [ ] 反向链接（Backlinks）面板
+  - [ ] `#tags` 与 YAML Frontmatter 属性索引
+  - [ ] 文件重命名时自动更新 `[[双链]]` 引用
+  - [ ] PDF 文本选中与复制
 
 ## 许可证
 
-winc 以 [Apache License 2.0](LICENSE) 授权，另见 [NOTICE](NOTICE)。
+`obnote` 遵循 [Apache License, Version 2.0](LICENSE) 开源协议，并完整保留上游 [DEEIX AI / Winc](https://github.com/DEEIX-AI/Winc) 的 [LICENSE](LICENSE) 与 [NOTICE](NOTICE) 版权声明。

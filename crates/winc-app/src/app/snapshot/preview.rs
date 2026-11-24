@@ -943,7 +943,8 @@ fn each_kind_of_file_keeps_its_own_preview_mode() {
             PreviewMode::Source,
             PreviewMode::Preview,
             PreviewMode::Source,
-            PreviewMode::Source
+            PreviewMode::Source,
+            PreviewMode::Source,
         ]
     );
     let _ = std::fs::remove_dir_all(&dir);

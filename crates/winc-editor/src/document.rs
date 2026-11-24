@@ -175,20 +175,26 @@ pub enum PreviewKind {
     Table,
     /// LaTeX：预览只读。
     Latex,
+    /// HTML：预览为阅读视图，只读。
+    Html,
 }
 
 impl PreviewKind {
     /// 全部种类。
-    pub const ALL: [PreviewKind; 4] = [
+    pub const ALL: [PreviewKind; 5] = [
         PreviewKind::Svg,
         PreviewKind::Markdown,
         PreviewKind::Table,
         PreviewKind::Latex,
+        PreviewKind::Html,
     ];
 
-    /// 是否按 Markdown 预览排版（Markdown，以及转换成 Markdown 的 LaTeX）。
+    /// 是否按 Markdown 预览排版（Markdown，以及转换成 Markdown 的 LaTeX、HTML）。
     pub fn typeset(self) -> bool {
-        matches!(self, PreviewKind::Markdown | PreviewKind::Latex)
+        matches!(
+            self,
+            PreviewKind::Markdown | PreviewKind::Latex | PreviewKind::Html
+        )
     }
 
     /// 返回语言 `language` 的文本可以预览成哪一种；不能预览的语言返回 `None`。
@@ -198,6 +204,7 @@ impl PreviewKind {
             "markdown" => Some(PreviewKind::Markdown),
             "csv" | "tsv" => Some(PreviewKind::Table),
             "latex" => Some(PreviewKind::Latex),
+            "html" => Some(PreviewKind::Html),
             _ => None,
         }
     }
@@ -225,6 +232,8 @@ pub enum Unsupported {
     Workbook,
     /// docx 文字文档：编辑区显示转换成 Markdown 后排版的阅读视图，由界面读取和转换。
     Docx,
+    /// pptx 演示文稿：与 [`Unsupported::Docx`] 相同，显示转换成 Markdown 后排版的阅读视图。
+    Pptx,
     /// EPUB 电子书：与 [`Unsupported::Docx`] 相同，显示转换成 Markdown 后排版的阅读视图。
     Epub,
     /// PDF（只在能预览 PDF 的平台上，见 `winc_preview::pdf::supported`）：
@@ -239,9 +248,9 @@ pub enum Unsupported {
 }
 
 impl Unsupported {
-    /// 是否显示转换成 Markdown 后排版的阅读视图（docx、EPUB）。
+    /// 是否显示转换成 Markdown 后排版的阅读视图（docx、pptx、EPUB）。
     pub fn reads_as_markdown(&self) -> bool {
-        matches!(self, Unsupported::Docx | Unsupported::Epub)
+        matches!(self, Unsupported::Docx | Unsupported::Pptx | Unsupported::Epub)
     }
 }
 
@@ -265,6 +274,7 @@ impl std::fmt::Display for Unsupported {
             Unsupported::Image => f.write_str(t!("editor-unsupported-image")),
             Unsupported::Workbook => f.write_str(t!("editor-unsupported-workbook")),
             Unsupported::Docx => f.write_str(t!("editor-unsupported-docx")),
+            Unsupported::Pptx => f.write_str(t!("editor-unsupported-pptx")),
             Unsupported::Epub => f.write_str(t!("editor-unsupported-epub")),
             Unsupported::Pdf => f.write_str(t!("editor-unsupported-pdf")),
             Unsupported::Binary(size) => {

@@ -86,7 +86,7 @@ impl ApplicationHandler<UserEvent> for App {
         {
             use winit::platform::startup_notify::WindowAttributesExtStartupNotify;
             use winit::platform::wayland::WindowAttributesExtWayland;
-            attributes = attributes.with_name("winc", "winc");
+            attributes = attributes.with_name("obnote", "obnote");
             // 激活令牌：Wayland 上新窗口凭该令牌切换到前台，X11 上凭该令牌结束启动通知。
             if let Some(token) = self.opening.activation.take() {
                 attributes = attributes.with_activation_token(token);

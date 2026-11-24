@@ -98,6 +98,8 @@ pub struct ModuleFx {
     pub preview_mode: Option<winc_editor::PreviewMode>,
     /// 标签栏右端「在浏览器中打开」按钮的显示状态。
     pub browser: Presence,
+    /// 标签栏右端「用默认应用打开」按钮的显示状态。
+    pub external_app: Presence,
 }
 
 impl ModuleFx {
@@ -110,12 +112,13 @@ impl ModuleFx {
             || self.branch.moving()
             || self.preview.moving()
             || self.browser.moving()
+            || self.external_app.moving()
     }
 }
 
 impl App {
-    /// 每帧绘制前调用：与上一帧比较「提交」一段、终端开关、分支名、预览切换和「在浏览器中打开」
-    /// 是否出现或消失。
+    /// 每帧绘制前调用：与上一帧比较「提交」一段、终端开关、分支名、预览切换、「在浏览器中打开」
+    /// 和「用默认应用打开」是否出现或消失。
     pub(in crate::app) fn track_modules(&mut self) {
         let commit = self.git.root.is_some();
         let terminal = self.terminal_enabled();
@@ -124,6 +127,7 @@ impl App {
         let branch = self.git.status.as_ref().is_some_and(|s| s.head.is_some());
         let preview = self.editor.active().is_some_and(|d| d.can_preview());
         let browser = self.browser_page().is_some();
+        let external_app = self.default_app_file().is_some();
         let fx = &self.motion.module_fx;
         let changed = fx.commit_tab.shown != commit
             || fx.terminal.shown != terminal
@@ -131,7 +135,8 @@ impl App {
             || fx.git.shown != git
             || fx.branch.shown != branch
             || fx.preview.shown != preview
-            || fx.browser.shown != browser;
+            || fx.browser.shown != browser
+            || fx.external_app.shown != external_app;
         // 同一帧变了的几样（开关 Git 模块时「提交」一段和分支名）共用一个时钟。
         let primed = std::mem::replace(&mut self.motion.module_fx.primed, true);
         let clock = if primed && changed {
@@ -150,6 +155,7 @@ impl App {
         }
         fx.preview.track(preview, clock);
         fx.browser.track(browser, clock);
+        fx.external_app.track(external_app, clock);
         if !preview && !fx.preview.moving() {
             fx.preview_mode = None;
         }

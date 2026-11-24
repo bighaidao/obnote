@@ -102,6 +102,13 @@ preview-docx-chart-series = { $count } 组数据：{ $names }
 preview-docx-chart-category = 类别
 preview-docx-image-unsupported = 图片「{ $name }」为 { $format } 格式，无法预览
 
+## PowerPoint 演示文稿预览
+
+preview-pptx-invalid = 不是有效的 pptx 文件
+preview-pptx-unsupported = 不支持加密或 zip64 格式的 pptx 文件
+preview-pptx-too-large = 文件过大
+preview-pptx-slide = 第 { $number } 页
+
 ## EPUB 电子书预览
 
 preview-epub-invalid = 不是有效的 EPUB 文件

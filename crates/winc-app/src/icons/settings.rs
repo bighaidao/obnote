@@ -129,6 +129,30 @@ pub fn globe(frame: &mut Frame<'_>, (cx, cy): (f32, f32), k: f32, color: Color, 
     frame.stroke(&lines, RING_STROKE, color, clip);
 }
 
+/// 绘制「用默认应用打开」图标，13×13：左下角开口的方框和指向右上方的箭头。
+///
+/// 图形按比例 `k` 缩放，线宽不变；出现、消失的动画中 `k` 逐渐变化。
+pub fn open_external(
+    frame: &mut Frame<'_>,
+    (cx, cy): (f32, f32),
+    k: f32,
+    color: Color,
+    clip: Rect,
+) {
+    let lines = [
+        // 开口方框（左、下、右半边、上半边）
+        Stroke::Line(cx - 1.0 * k, cy - 3.5 * k, cx - 5.5 * k, cy - 3.5 * k),
+        Stroke::Line(cx - 5.5 * k, cy - 3.5 * k, cx - 5.5 * k, cy + 5.5 * k),
+        Stroke::Line(cx - 5.5 * k, cy + 5.5 * k, cx + 3.5 * k, cy + 5.5 * k),
+        Stroke::Line(cx + 3.5 * k, cy + 5.5 * k, cx + 3.5 * k, cy + 1.0 * k),
+        // 右上外指箭头
+        Stroke::Line(cx - 0.5 * k, cy + 0.5 * k, cx + 5.5 * k, cy - 5.5 * k),
+        Stroke::Line(cx + 1.5 * k, cy - 5.5 * k, cx + 5.5 * k, cy - 5.5 * k),
+        Stroke::Line(cx + 5.5 * k, cy - 5.5 * k, cx + 5.5 * k, cy - 1.5 * k),
+    ];
+    frame.stroke(&lines, RING_STROKE, color, clip);
+}
+
 /// 绘制「Markdown」图标，15×11：圆角框，内有字母 M 和一个向下的箭头。
 ///
 /// 用于设置的分类栏。

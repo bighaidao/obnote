@@ -170,6 +170,8 @@ enum OpenedContent {
     Workbook(Option<Stamp>),
     /// docx 文字文档：只有修改时间，读取和转换另外做。
     Docx(Option<Stamp>),
+    /// pptx 演示文稿：只有修改时间，读取和转换另外做。
+    Pptx(Option<Stamp>),
     /// EPUB 电子书：只有修改时间，读取和转换另外做。
     Epub(Option<Stamp>),
     /// PDF：只有修改时间，读取和渲染另外做。
@@ -515,6 +517,7 @@ impl Document {
                 Unsupported::Image
                     | Unsupported::Workbook
                     | Unsupported::Docx
+                    | Unsupported::Pptx
                     | Unsupported::Epub
                     | Unsupported::Pdf
             )
@@ -807,6 +810,8 @@ impl Document {
                 OpenedContent::Workbook(mtime())
             } else if !as_text && winc_preview::docx::is_docx(path) {
                 OpenedContent::Docx(mtime())
+            } else if !as_text && winc_preview::pptx::is_pptx(path) {
+                OpenedContent::Pptx(mtime())
             } else if !as_text && winc_preview::epub::is_epub(path) {
                 OpenedContent::Epub(mtime())
             } else if !as_text && winc_preview::pdf::supported() && winc_preview::pdf::is_pdf(path)
@@ -846,6 +851,11 @@ impl Document {
             OpenedContent::Docx(mtime) => {
                 document.readonly = true;
                 document.unsupported = Some(Unsupported::Docx);
+                document.disk_mtime = mtime;
+            }
+            OpenedContent::Pptx(mtime) => {
+                document.readonly = true;
+                document.unsupported = Some(Unsupported::Pptx);
                 document.disk_mtime = mtime;
             }
             OpenedContent::Epub(mtime) => {

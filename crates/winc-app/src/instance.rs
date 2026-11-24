@@ -126,7 +126,7 @@ pub(crate) fn private_file(name: &str, extension: &str) -> Option<PathBuf> {
         Some(dir)
     })?;
     // 测试使用另一套名字，避免把目标交给本机正在运行的 winc 并使其切换到前台。
-    let prefix = if cfg!(test) { "winc-test" } else { "winc" };
+    let prefix = if cfg!(test) { "obnote-test" } else { "obnote" };
     let path = dir.join(format!("{prefix}-{name}.{extension}"));
     // 只有套接字的路径受这个限制；锁文件等其他文件不受限，Windows 上的数据目录常常更长。
     let fits = extension != "sock" || path.as_os_str().len() <= LIMIT;
@@ -403,7 +403,7 @@ mod imp {
 pub fn app_pipe_name() -> PathBuf {
     let user = std::env::var("USERNAME").unwrap_or_default();
     // 测试使用另一套名字，避免把目标交给本机正在运行的 winc 并使其切换到前台。
-    let prefix = if cfg!(test) { "winc-test" } else { "winc" };
+    let prefix = if cfg!(test) { "obnote-test" } else { "obnote" };
     let tag = (winc_config::files::portable_dir())
         .map(|dir| format!("-{:016x}", path_tag(&dir)))
         .unwrap_or_default();

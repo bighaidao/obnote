@@ -356,6 +356,7 @@ impl App {
         let buttons = (
             std::mem::take(&mut fx.preview),
             std::mem::take(&mut fx.browser),
+            std::mem::take(&mut fx.external_app),
             fx.preview_mode.take(),
         );
         let under = self.background_pane_at(x, y);
@@ -380,7 +381,7 @@ impl App {
             }
         }
         let fx = &mut self.motion.module_fx;
-        (fx.preview, fx.browser, fx.preview_mode) = buttons;
+        (fx.preview, fx.browser, fx.external_app, fx.preview_mode) = buttons;
         self.focus = focus;
         self.pointer.drag = drag;
         self.pointer.hover = if elsewhere { Hover::None } else { hover };

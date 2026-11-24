@@ -51,6 +51,62 @@ impl App {
             Err(e) => self.flash(t!("preview-browser-failed", error = e.to_string())),
         }
     }
+
+    /// 当前标签是本机磁盘上处于预览或只读视图的文件时返回它的路径（标签栏右端显示
+    /// 「用默认应用打开」）。
+    ///
+    /// 网页文件已有「在浏览器中打开」按钮，显示占位页的文件（如二进制、过大或无法读取）
+    /// 自身已带操作按钮，均不重复显示。远端主机上的文件无法由本机程序打开。
+    pub(crate) fn default_app_file(&self) -> Option<&Path> {
+        let doc = self.editor.active()?;
+        if doc.title.is_some()
+            || doc.diff.is_some()
+            || doc.log.is_some()
+            || doc.hex.is_some()
+            || doc.is_pending()
+            || self.browser_page().is_some()
+        {
+            return None;
+        }
+        let path = doc
+            .path
+            .as_deref()
+            .filter(|p| !winc_backend::is_remote(p))?;
+        let show = match &doc.unsupported {
+            Some(winc_editor::Unsupported::Pdf) => !matches!(self.preview.pdf.pages, Some(Err(_))),
+            Some(winc_editor::Unsupported::Image) => {
+                !matches!(doc.picture, Some(winc_editor::PictureState::Failed(_)))
+            }
+            Some(winc_editor::Unsupported::Workbook) => !matches!(
+                doc.table.as_deref().map(|t| &t.state),
+                Some(winc_editor::TableState::Failed(_))
+            ),
+            Some(
+                winc_editor::Unsupported::Binary(_)
+                | winc_editor::Unsupported::TooLarge(_)
+                | winc_editor::Unsupported::Unreadable(_),
+            ) => false,
+            Some(kind) => kind.reads_as_markdown() && self.preview.markdown.failed.is_none(),
+            None => {
+                (doc.can_preview() && doc.preview_mode() != winc_editor::PreviewMode::Source)
+                    || doc.readonly
+            }
+        };
+        show.then_some(path)
+    }
+
+    /// 用系统默认应用打开当前标签对应的本机文件。
+    pub(in crate::app) fn open_with_default_app(&mut self) {
+        let Some(path) = self.default_app_file().map(Path::to_path_buf) else {
+            return;
+        };
+        if let Err(e) = crate::system::open_with_default_app(&path) {
+            self.flash(t!(
+                "workspace-open-default-app-failed",
+                error = e.to_string()
+            ));
+        }
+    }
 }
 
 /// 各类预览的状态：图片、表格、分栏、Markdown 与 PDF。

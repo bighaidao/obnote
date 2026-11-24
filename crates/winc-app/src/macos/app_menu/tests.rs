@@ -102,7 +102,7 @@ fn opened_urls_reach_the_handler_as_targets() {
     assert!(add_open_urls(class, open_urls));
     assert!(!add_open_urls(class, open_urls));
 
-    // 一个文件、一个带空格的目录、一个 `winc://` 链接、一个其他网址（跳过）。
+    // 一个文件、一个带空格的目录、一个 `obnote://` 链接、一个其他网址（跳过）。
     let file = super::super::files::file_url(Path::new("/tmp/a.txt"), false).unwrap();
     let dir = super::super::files::file_url(Path::new("/tmp/b c"), true).unwrap();
     // SAFETY: `class` 的实例已有刚添加的方法，按其类型编码 `v@:@@` 调用，NSApplication 传 nil；
@@ -116,7 +116,7 @@ fn opened_urls_reach_the_handler_as_targets() {
         let objects: [*mut AnyObject; 4] = [
             Retained::as_ptr(&file).cast_mut(),
             Retained::as_ptr(&dir).cast_mut(),
-            url("winc://file/tmp/c%20d.rs:3:2"),
+            url("obnote://file/tmp/c%20d.rs:3:2"),
             url("https://example.com"),
         ];
         let urls: *mut AnyObject =

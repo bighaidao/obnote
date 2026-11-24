@@ -45,7 +45,7 @@ pub fn bench(runs: usize) -> Result<bool, String> {
 
     let exe = root()
         .join("target/release")
-        .join(if cfg!(windows) { "winc.exe" } else { "winc" });
+        .join(if cfg!(windows) { "obnote.exe" } else { "obnote" });
     let dir = samples_dir();
     let large = dir.join("large.rs");
     let mut ok = true;

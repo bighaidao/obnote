@@ -381,6 +381,7 @@ fn draw_tabs(app: &mut App, frame: &mut Frame<'_>) {
     app.hits.tabs = hits;
     draw_preview_button(app, frame);
     draw_browser_button(app, frame);
+    draw_external_app_button(app, frame);
 }
 
 /// 绘制标签栏右端的「在浏览器中打开」按钮（`Layout::browser`）：出现、消失时随按钮宽度淡入
@@ -401,6 +402,26 @@ fn draw_browser_button(app: &App, frame: &mut Frame<'_>) {
         let color = if hovered { p.text } else { p.text_muted };
         let clip = button.intersect(app.layout.top_bar);
         icons::globe(frame, center(button), 0.6 + 0.4 * share, color, clip);
+    });
+}
+
+/// 绘制标签栏右端的「用默认应用打开」按钮（`Layout::external_app`）：出现、消失时随按钮宽度
+/// 淡入淡出并缩放，同浏览器按钮。
+fn draw_external_app_button(app: &App, frame: &mut Frame<'_>) {
+    let button = app.layout.external_app;
+    if button.w <= 0.0 {
+        return;
+    }
+    let p = app.palette;
+    let present = app.default_app_file().is_some();
+    let share = app.motion.module_fx.external_app.share(present);
+    let opacity = app.motion.module_fx.external_app.opacity(present);
+    let hovered = present && app.pointer.hover == Hover::ExternalApp;
+    frame.with_opacity(opacity, |frame| {
+        draw_button(frame, p, button, app.layout.top_bar, hovered, false);
+        let color = if hovered { p.text } else { p.text_muted };
+        let clip = button.intersect(app.layout.top_bar);
+        icons::open_external(frame, center(button), 0.6 + 0.4 * share, color, clip);
     });
 }
 

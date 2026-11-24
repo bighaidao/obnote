@@ -41,6 +41,10 @@ pub(super) fn draw_tooltip(app: &App, frame: &mut Frame<'_>) {
                 crate::layout::with_key(t!("cmd-toggle-sidebar"), Some(Action::ToggleSidebar)),
             ),
             Hover::Browser => (app.layout.browser, t!("preview-browser-open").to_owned()),
+            Hover::ExternalApp => (
+                app.layout.external_app,
+                t!("editor-open-with-default-app").to_owned(),
+            ),
             Hover::Preview(mode) => {
                 use winc_editor::PreviewMode::*;
                 let [source, split, preview] = crate::layout::preview_segments(app.layout.preview);

@@ -14,8 +14,8 @@ case "$target" in
 esac
 version="$(node release/common/version.mjs)"
 bundle="$root/target/$target/release/bundle"
-app="$bundle/macos/winc.app"
-release_stem="Winc-$version-macos-$arch"
+app="$bundle/macos/obnote.app"
+release_stem="obnote-$version-macos-$arch"
 dmg="$bundle/dmg/$release_stem.dmg"
 mode="${SIGNING_MODE:-adhoc}"
 workdir=""
@@ -57,7 +57,7 @@ case "$phase" in
   app)
     cargo xtask app --target "$target" --no-build
     mkdir -p "$bundle/macos"
-    mv "$bundle/winc.app" "$app"
+    mv "$bundle/obnote.app" "$app"
     if [[ "$mode" == apple ]]; then
       import_certificate
       # Sign Mach-O leaves before their containing XPCs, frameworks and app.
@@ -81,7 +81,7 @@ case "$phase" in
     make_workdir
     ditto "$app" "$workdir/$release_stem.app"
     mkdir -p "$workdir/signed"
-    signed_app="$workdir/signed/winc.app"
+    signed_app="$workdir/signed/obnote.app"
     sign_external "$workdir/$release_stem.app" "$signed_app"
     [[ -d "$signed_app" ]] || fail "the signing helper did not produce an app"
     codesign --verify --deep --strict "$signed_app"

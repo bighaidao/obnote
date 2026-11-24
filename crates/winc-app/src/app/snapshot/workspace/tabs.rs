@@ -1067,11 +1067,16 @@ fn web_pages_get_an_open_in_browser_button() {
     let mut app = app_with(&page, false);
     paint(&mut app);
 
-    // 网页：标签栏右端有一个按钮，标签栏让出该处；没有预览切换。
+    // 网页：标签栏右端既有 HTML 阅读模式的预览切换，也有「在浏览器中打开」按钮，标签栏让出两处。
     let button = app.layout.browser;
+    let right_edge = app.layout.preview.right();
     assert_eq!(button.w, crate::theme::BUTTON);
-    assert!(app.layout.tabs.right() <= button.x);
-    assert_eq!(app.layout.preview.w, 0.0);
+    assert_eq!(
+        app.editor.active().and_then(|d| d.preview_kind()),
+        Some(winc_editor::PreviewKind::Html)
+    );
+    assert!(app.layout.preview.w > 0.0);
+    assert!(app.layout.tabs.right() <= button.x.min(app.layout.preview.x));
     let at = (button.x + button.w / 2.0, button.y + button.h / 2.0);
     app.on_mouse_move(at.0, at.1);
     assert_eq!(app.pointer.hover, crate::app::Hover::Browser);
@@ -1099,7 +1104,7 @@ fn web_pages_get_an_open_in_browser_button() {
     assert!(app.browser_page().is_none());
     let now = app.layout.browser;
     assert!(now.w > 0.0 && now.w < button.w, "{now:?}");
-    assert_eq!(now.right(), button.right());
+    assert_eq!(now.right(), right_edge);
     app.on_mouse_move(now.x + 2.0, now.y + 4.0);
     assert_ne!(app.pointer.hover, crate::app::Hover::Browser);
 

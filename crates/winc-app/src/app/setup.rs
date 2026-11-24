@@ -41,8 +41,12 @@ pub(in crate::app) const OUTRO: Duration = Duration::from_millis(380);
 /// 应用图标，与各平台安装包的图标同一份。
 pub(crate) const ICON: &str = include_str!("../../assets/icon.svg");
 
-/// 图标中底板、丝带和圆点三层各自开始的位置（SVG 源码中的标记）。
-const LAYERS: [&str; 3] = ["<!-- 四周透明 -->", "<!-- 丝带轮廓与折面 -->", "<circle"];
+/// 图标中底板、纸页和书签点缀三层各自开始的位置（SVG 源码中的标记）。
+const LAYERS: [&str; 3] = [
+    "<!-- 四周透明的圆角方形底板",
+    "<!-- 象牙白折角笔记纸页 -->",
+    "<!-- 暖琥珀金书签丝带 -->",
+];
 
 /// 丝带从左到右显露时，裁剪矩形右边缘的起点和终点（SVG 用户单位）：略宽于丝带的左右两端。
 const RIBBON_SPAN: (f32, f32) = (150.0, 860.0);
