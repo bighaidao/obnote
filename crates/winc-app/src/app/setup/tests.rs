@@ -9,11 +9,11 @@ fn visible(rgba: &[u8]) -> usize {
     pixels.iter().filter(|px| px[3] > 0).count()
 }
 
-/// 返回图像中接近象牙白（笔记纸页）的像素个数。
-fn white(rgba: &[u8]) -> usize {
+/// 返回图像中深石板靛蓝（笔记折角与横线）的像素个数。
+fn ink(rgba: &[u8]) -> usize {
     let (pixels, _) = rgba.as_chunks::<4>();
     (pixels.iter())
-        .filter(|px| px[3] > 200 && px[0] > 215 && px[1] > 215 && px[2] > 215)
+        .filter(|px| px[3] > 200 && px[0] < 120 && px[1] < 130 && px[2] > 90 && px[2] > px[0])
         .count()
 }
 
@@ -39,13 +39,13 @@ fn the_logo_builds_up_layer_by_layer_and_ends_as_the_app_icon() {
         .filter(|(a, b)| a.abs_diff(**b) > 2)
         .count();
     assert!(last.len() == plain.len() && differing == 0, "{differing}");
-    // 开始时什么都没有；底板先出现，此时还没有象牙白纸页和琥珀金书签。
+    // 开始时什么都没有；浅色底板先出现，此时还没有笔记折角/横线和琥珀金书签。
     assert_eq!(visible(&logo_frame(size, 0.0)), 0);
     let tile = logo_frame(size, 0.26);
-    assert!(visible(&tile) > 0 && white(&tile) == 0 && amber(&tile) == 0);
-    // 纸页从左到右显露：象牙白像素逐渐增多，琥珀金书签与星光最后出现。
+    assert!(visible(&tile) > 0 && ink(&tile) == 0 && amber(&tile) == 0);
+    // 纸页从左到右显露：笔记折角与横线像素逐渐增多，琥珀金书签与星光最后出现。
     let (early, late) = (logo_frame(size, 0.45), logo_frame(size, 0.68));
-    assert!(white(&early) > 0 && white(&late) > white(&early));
+    assert!(ink(&early) > 0 && ink(&late) > ink(&early));
     assert_eq!(amber(&late), 0);
     assert!(amber(&plain) > 0);
 }

@@ -661,11 +661,11 @@ fn write_png(path: &Path, pixels: &winc_preview::image::Pixels) -> Result<(), St
 }
 
 /// 访达「服务」菜单中的服务名，也是 `ServicesMenu.strings` 中各语言译文的键。
-const SERVICE_TITLE: &str = "Open in Winc";
+const SERVICE_TITLE: &str = "Open in obnote";
 
 /// 写入各语言的服务名（`<语言>.lproj/ServicesMenu.strings`），系统按用户的首选语言显示。
 fn write_services_menu(resources: &Path) -> Result<(), String> {
-    for (language, title) in [("en", SERVICE_TITLE), ("zh-Hans", "在 Winc 中打开")] {
+    for (language, title) in [("en", SERVICE_TITLE), ("zh-Hans", "在 obnote 中打开")] {
         let dir = resources.join(format!("{language}.lproj"));
         std::fs::create_dir_all(&dir).map_err(|e| format!("{}：{e}", dir.display()))?;
         let file = dir.join("ServicesMenu.strings");
@@ -972,8 +972,8 @@ fn document_type<'a>(
 
 /// 生成 `Info.plist`；`arch` 是应用的架构（`arm64` 或 `x86_64`），决定请求哪一份 appcast。
 ///
-/// `CFBundleDocumentTypes` 见 [`document_types`]；`CFBundleURLTypes` 声明 `winc://` 链接。
-/// `NSServices` 声明一项服务「在 Winc 中打开」（见 [`SERVICE_TITLE`]），只针对文本文件
+/// `CFBundleDocumentTypes` 见 [`document_types`]；`CFBundleURLTypes` 声明 `obnote://` 链接。
+/// `NSServices` 声明一项服务「在 obnote 中打开」（见 [`SERVICE_TITLE`]），只针对文本文件
 /// （`public.text`）和文件夹，由应用委托处理，声明了 `NSRequiredContext`，安装后即启用；不安装
 /// 扩展，也不修改任何文件类型的默认打开方式。
 fn info_plist(version: &str, updates: &sparkle::UpdateConfig, arch: &str) -> String {

@@ -1,4 +1,4 @@
-//! `dmg` 的测试：`Info.plist` 中的文档类型、「在 Winc 中打开」服务和 `winc` 协议的声明，以及
+//! `dmg` 的测试：`Info.plist` 中的文档类型、「在 obnote 中打开」服务和 `obnote` 协议的声明，以及
 //! 各语言的服务名。
 
 use super::*;
@@ -10,7 +10,7 @@ fn info_plist_declares_the_open_service_for_text_files_and_folders() {
     let service = &plist[start..];
     let service = &service[..service.find("</array>\n\t<key>").unwrap()];
     for want in [
-        "<string>Open in Winc</string>",
+        "<string>Open in obnote</string>",
         "<key>NSMessage</key>\n\t\t\t<string>openInWinc</string>",
         // 声明了 `NSRequiredContext` 的服务安装后即启用。
         "<key>NSRequiredContext</key>\n\t\t\t<dict/>",
@@ -40,7 +40,7 @@ fn info_plist_declares_the_open_service_for_text_files_and_folders() {
     }
 }
 
-/// `Info.plist` 声明 `winc` 协议，`winc://` 链接交给 Winc 打开。
+/// `Info.plist` 声明 `obnote` 协议，`obnote://` 链接交给 obnote 打开。
 #[test]
 fn info_plist_declares_the_winc_url_scheme() {
     let plist = info_plist("1.2.3", &sparkle::UpdateConfig::default(), "arm64");
@@ -49,7 +49,7 @@ fn info_plist_declares_the_winc_url_scheme() {
         .expect("声明了协议");
     let types = &plist[start..];
     let types = &types[..types.find("</array>\n\t<key>").unwrap()];
-    assert!(types.contains("<string>winc</string>"), "{types}");
+    assert!(types.contains("<string>obnote</string>"), "{types}");
     assert!(
         types.contains(&format!("<string>{BUNDLE_ID}</string>")),
         "{types}"
@@ -98,8 +98,8 @@ fn services_menu_titles_are_written_for_each_language() {
     let read = |language: &str| {
         std::fs::read_to_string(dir.join(format!("{language}.lproj/ServicesMenu.strings"))).unwrap()
     };
-    assert_eq!(read("en"), "\"Open in Winc\" = \"Open in Winc\";\n");
-    assert_eq!(read("zh-Hans"), "\"Open in Winc\" = \"在 Winc 中打开\";\n");
+    assert_eq!(read("en"), "\"Open in obnote\" = \"Open in obnote\";\n");
+    assert_eq!(read("zh-Hans"), "\"Open in obnote\" = \"在 obnote 中打开\";\n");
     let _ = std::fs::remove_dir_all(&dir);
 }
 

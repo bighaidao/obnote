@@ -8,83 +8,106 @@
   <title>obnote App Logo</title>
 
   <defs>
-    <!-- 深石板靛蓝底板 -->
+    <!-- 明亮清透的 macOS 珠光浅灰白底板 -->
     <linearGradient
       id="background"
-      x1="160" y1="60"
-      x2="864" y2="964"
+      x1="512" y1="52"
+      x2="512" y2="972"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#2C3352"/>
-      <stop offset="0.52" stop-color="#232841"/>
-      <stop offset="1" stop-color="#1E2235"/>
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#F5F7FB"/>
+      <stop offset="1" stop-color="#E7ECF5"/>
     </linearGradient>
 
     <!-- 柔和顶部高光 -->
     <linearGradient
       id="bgSheen"
       x1="512" y1="52"
-      x2="512" y2="520"
+      x2="512" y2="420"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#4B5582" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="#2C3352" stop-opacity="0"/>
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
 
-    <!-- 象牙白纸页 -->
+    <!-- 纸页柔和投影 -->
+    <linearGradient
+      id="sheetShadow"
+      x1="512" y1="168"
+      x2="512" y2="884"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#1E293B" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#1E293B" stop-opacity="0.13"/>
+    </linearGradient>
+
+    <!-- 纯净象牙白笔记纸页 -->
     <linearGradient
       id="sheet"
-      x1="300" y1="196"
-      x2="720" y2="836"
+      x1="220" y1="160"
+      x2="800" y2="864"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#FFFDF8"/>
-      <stop offset="0.65" stop-color="#F7F4EC"/>
-      <stop offset="1" stop-color="#ECE8DC"/>
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.7" stop-color="#FCFDFE"/>
+      <stop offset="1" stop-color="#F3F6FB"/>
     </linearGradient>
 
-    <!-- 折角阴影与折面 -->
+    <!-- 折角下方折痕阴影 -->
     <linearGradient
       id="foldShadow"
-      x1="604" y1="348"
-      x2="764" y2="348"
+      x1="648" y1="328"
+      x2="836" y2="328"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#1E2235" stop-opacity="0.12"/>
-      <stop offset="1" stop-color="#1E2235" stop-opacity="0.02"/>
+      <stop offset="0" stop-color="#334155" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#334155" stop-opacity="0.02"/>
     </linearGradient>
 
+    <!-- 右上角靛蓝折角 -->
     <linearGradient
       id="foldFlap"
-      x1="612" y1="348"
-      x2="764" y2="196"
+      x1="656" y1="328"
+      x2="836" y2="148"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#E2DFD4"/>
-      <stop offset="1" stop-color="#CFD4E3"/>
+      <stop offset="0" stop-color="#4F5D8A"/>
+      <stop offset="1" stop-color="#344068"/>
     </linearGradient>
 
     <!-- 暖琥珀金书签丝带 -->
     <linearGradient
       id="ribbon"
-      x1="400" y1="196"
-      x2="400" y2="416"
+      x1="344" y1="148"
+      x2="344" y2="412"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#FBBF24"/>
-      <stop offset="0.55" stop-color="#F59E0B"/>
+      <stop offset="0" stop-color="#FCD34D"/>
+      <stop offset="0.52" stop-color="#F59E0B"/>
       <stop offset="1" stop-color="#D97706"/>
+    </linearGradient>
+
+    <!-- 笔记本横线（深石板靛蓝，高对比易识别） -->
+    <linearGradient
+      id="linePrimary"
+      x1="272" y1="476"
+      x2="660" y2="476"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#3B4872"/>
+      <stop offset="1" stop-color="#526294"/>
     </linearGradient>
 
     <!-- 四角星光点缀 -->
     <linearGradient
       id="spark"
-      x1="630" y1="646"
-      x2="736" y2="752"
+      x1="646" y1="620"
+      x2="782" y2="756"
       gradientUnits="userSpaceOnUse"
     >
       <stop offset="0" stop-color="#FDE68A"/>
-      <stop offset="0.5" stop-color="#F59E0B"/>
+      <stop offset="0.48" stop-color="#F59E0B"/>
       <stop offset="1" stop-color="#D97706"/>
     </linearGradient>
   </defs>
@@ -108,54 +131,85 @@
     fill="url(#bgSheen)"
   />
 
+  <!-- 极细浅灰蓝外描边，保证浅色壁纸/Dock 下轮廓清晰 -->
+  <rect
+    x="54"
+    y="54"
+    width="916"
+    height="916"
+    rx="220"
+    stroke="#D4DCEB"
+    stroke-width="4"
+  />
+
   <!-- 象牙白折角笔记纸页 -->
+  <!-- 纸页柔光投影 -->
   <path
     d="
-      M 304 196
-      L 612 196
-      L 764 348
-      L 764 780
-      C 764 807, 743 828, 716 828
-      L 304 828
-      C 277 828, 256 807, 256 780
-      L 256 244
-      C 256 217, 277 196, 304 196
+      M 244 166
+      L 660 166
+      L 840 346
+      L 840 818
+      C 840 852, 812 880, 778 880
+      L 244 880
+      C 210 880, 182 852, 182 818
+      L 182 228
+      C 182 194, 210 166, 244 166
+      Z
+    "
+    fill="url(#sheetShadow)"
+  />
+
+  <!-- 纸页主体（占比约 71% 底板宽度，饱满清晰） -->
+  <path
+    d="
+      M 244 148
+      L 656 148
+      L 836 328
+      L 836 800
+      C 836 834, 808 862, 774 862
+      L 244 862
+      C 210 862, 182 834, 182 800
+      L 182 210
+      C 182 176, 210 148, 244 148
       Z
     "
     fill="url(#sheet)"
+    stroke="#CFD8E8"
+    stroke-width="4"
   />
 
   <!-- 折角下方柔和折痕阴影 -->
   <path
-    d="M 612 348 L 764 348 L 764 374 L 628 374 Z"
+    d="M 656 328 L 836 328 L 836 360 L 676 360 Z"
     fill="url(#foldShadow)"
   />
 
   <!-- 右上角折角三角 -->
   <path
     d="
-      M 612 196
-      L 764 348
-      L 652 348
-      C 630 348, 612 330, 612 308
+      M 656 148
+      L 836 328
+      L 704 328
+      C 678 328, 656 306, 656 280
       Z
     "
     fill="url(#foldFlap)"
   />
 
   <!-- 极简笔记横线 -->
-  <rect x="332" y="468" width="320" height="32" rx="16" fill="#C7CDE0"/>
-  <rect x="332" y="544" width="356" height="32" rx="16" fill="#D5DAEA"/>
-  <rect x="332" y="620" width="228" height="32" rx="16" fill="#D5DAEA"/>
+  <rect x="268" y="458" width="388" height="38" rx="19" fill="url(#linePrimary)"/>
+  <rect x="268" y="548" width="444" height="38" rx="19" fill="#94A3C4"/>
+  <rect x="268" y="638" width="286" height="38" rx="19" fill="#B4C0D9"/>
 
   <!-- 暖琥珀金书签丝带 -->
   <path
     d="
-      M 348 196
-      L 452 196
-      L 452 408
-      L 400 364
-      L 348 408
+      M 284 148
+      L 404 148
+      L 404 402
+      L 344 350
+      L 284 402
       Z
     "
     fill="url(#ribbon)"
@@ -164,11 +218,11 @@
   <!-- 极简几何四角星光 -->
   <path
     d="
-      M 684 636
-      Q 684 704, 752 704
-      Q 684 704, 684 772
-      Q 684 704, 616 704
-      Q 684 704, 684 636
+      M 714 598
+      Q 714 684, 800 684
+      Q 714 684, 714 770
+      Q 714 684, 628 684
+      Q 714 684, 714 598
       Z
     "
     fill="url(#spark)"
