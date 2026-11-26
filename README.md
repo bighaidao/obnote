@@ -113,6 +113,11 @@ Add the following to `config.json` to disable developer modules (Git, terminal, 
   - [ ] Auto-update `[[wikilinks]]` on file rename
   - [ ] PDF text selection and copy
 
+## Community & Acknowledgments
+
+- Upstream project: [DEEIX AI / Winc](https://github.com/DEEIX-AI/Winc)
+- Open-source community: [LINUX DO](https://linux.do)
+
 ## License
 
 `obnote` is licensed under the [Apache License, Version 2.0](LICENSE), preserving the original [LICENSE](LICENSE) and [NOTICE](NOTICE) attribution to [DEEIX AI / Winc](https://github.com/DEEIX-AI/Winc).

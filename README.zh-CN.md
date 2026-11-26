@@ -113,6 +113,11 @@ cargo build --release --bin obnote
   - [ ] 文件重命名时自动更新 `[[双链]]` 引用
   - [ ] PDF 文本选中与复制
 
+## 社区与致谢
+
+- 上游项目：[DEEIX AI / Winc](https://github.com/DEEIX-AI/Winc)
+- 开源社区：[LINUX DO](https://linux.do)
+
 ## 许可证
 
 `obnote` 遵循 [Apache License, Version 2.0](LICENSE) 开源协议，并完整保留上游 [DEEIX AI / Winc](https://github.com/DEEIX-AI/Winc) 的 [LICENSE](LICENSE) 与 [NOTICE](NOTICE) 版权声明。
